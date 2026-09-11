@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Intervention {{ req.id }}</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+           margin: 0; background: #0f1216; color: #e6e9ee; }
+    header { background: #171b21; padding: 14px 22px; border-bottom: 1px solid #262c35; }
+    h1 { font-size: 15px; margin: 0; }
+    main { padding: 22px; max-width: 900px; }
+    a { color: #6ea8fe; text-decoration: none; }
+    h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .09em;
+         color: #8b95a3; margin: 24px 0 10px; font-weight: 600; }
+    dl { display: grid; grid-template-columns: 170px 1fr; gap: 8px 18px;
+         font-size: 13px; margin: 0; }
+    dt { color: #8b95a3; }
+    dd { margin: 0; }
+    pre { background: #151a20; border: 1px solid #262c35; border-radius: 8px;
+          padding: 12px; overflow-x: auto; font-size: 12px; line-height: 1.5;
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .panel { background: #151a20; border: 1px solid #262c35; border-radius: 10px;
+             padding: 16px 18px; margin-top: 12px; }
+    .lease-human { border-color: #6b4a1f; background: #1d1710; }
+    button { font: inherit; font-size: 13px; padding: 8px 16px; border-radius: 7px;
+             border: 1px solid #2f3946; background: #232a34; color: #e6e9ee;
+             cursor: pointer; }
+    button.primary { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+    button.warn { background: #7a3a12; border-color: #7a3a12; color: #ffd9b8; }
+    input, select { font: inherit; font-size: 13px; padding: 7px 10px; border-radius: 7px;
+                    border: 1px solid #2f3946; background: #0f1216; color: #e6e9ee; }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .note { color: #8b95a3; font-size: 12px; margin-top: 10px; line-height: 1.55; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+           background: #1c2128; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  </style>
+</head>
+<body>
+<header><h1><a href="/">&larr; Console</a> &nbsp;/&nbsp; {{ req.id }}</h1></header>
+
+<main>
+  <h2>Why this stopped</h2>
+  <dl>
+    <dt>Kind</dt><dd><code>{{ req.kind }}</code></dd>
+    <dt>Source</dt><dd>{{ req.source }}</dd>
+    <dt>Capability</dt><dd>{{ req.capability or '—' }}</dd>
+    <dt>Goal</dt><dd>{{ req.goal or '—' }}</dd>
+    <dt>Stopped at step</dt><dd>{{ req.step_id or '—' }}{% if req.step_intent %} — {{ req.step_intent }}{% endif %}</dd>
+    <dt>Reason</dt><dd>{{ req.reason }}</dd>
+    <dt>Run</dt><dd><code>{{ req.run_id or '—' }}</code></dd>
+    <dt>Session</dt><dd><code>{{ req.session_id or '—' }}</code></dd>
+    <dt>Inputs</dt><dd><code>{{ req.redacted_inputs }}</code></dd>
+  </dl>
+
+  {% if req.observation_summary %}
+  <h2>State when it stopped</h2>
+  <pre>{{ req.observation_summary }}</pre>
+  {% endif %}
+
+  <h2>Control</h2>
+  <div class="panel {% if lease and lease.owner == 'human' %}lease-human{% endif %}">
+    {% if lease %}
+      <div>Session <code>{{ session_id }}</code> is currently controlled by
+        <b>{{ lease.owner }}</b> ({{ lease.holder }}).</div>
+    {% else %}
+      <div>No live session is attached to this intervention.</div>
+    {% endif %}
+
+    {% if req.state != 'resolved' %}
+      {% if not lease or lease.owner == 'automation' %}
+      <form method="post" action="/intervention/{{ req.id }}/take" style="margin-top:14px">
+        <div class="row">
+          <input name="operator" value="operator" size="18">
+          <button class="primary" type="submit">Take control of the live session</button>
+        </div>
+      </form>
+      <div class="note">
+        Taking control moves the lease to you. The automation checks the lease
+        before every action, so it stops immediately and cannot touch the
+        session again until you hand it back. Work in the browser window that
+        is already open — it is the same session, with the same cookies and
+        form state the automation was using.
+      </div>
+      {% else %}
+      <form method="post" action="/intervention/{{ req.id }}/resolve" style="margin-top:14px">
+        <div class="row">
+          <select name="resolution">
+            <option value="resume">Resume — I unblocked it, carry on from where you stopped</option>
+            <option value="completed_manually">Completed manually — I did that step myself, skip it</option>
+            <option value="abort">Abort — do not continue</option>
+          </select>
+          <input name="note" placeholder="What did you do?" size="34">
+          <button class="warn" type="submit">Hand control back</button>
+        </div>
+      </form>
+      <div class="note">
+        Handing back returns the lease to automation and wakes the paused run.
+        What changed while you held the session is diffed and recorded as
+        evidence — you do not have to describe it accurately for it to be
+        audited.
+      </div>
+      {% endif %}
+    {% else %}
+      <div class="note">Resolved as <b>{{ req.resolution }}</b> at
+        {{ req.resolved_at.strftime('%H:%M:%S') if req.resolved_at else '' }}.</div>
+    {% endif %}
+  </div>
+
+  {% if req.human_actions %}
+  <h2>What the human did</h2>
+  {% for a in req.human_actions %}
+  <div class="panel">
+    <dl>
+      <dt>Operator</dt><dd>{{ a.operator }}</dd>
+      <dt>Note</dt><dd>{{ a.note or '—' }}</dd>
+      <dt>URL before</dt><dd><code>{{ a.observed_url_before }}</code></dd>
+      <dt>URL after</dt><dd><code>{{ a.observed_url_after }}</code></dd>
+      <dt>Controls appeared</dt><dd>{{ a.elements_added or '—' }}</dd>
+      <dt>Controls removed</dt><dd>{{ a.elements_removed or '—' }}</dd>
+      <dt>Text delta</dt><dd>{{ a.text_delta_chars }} chars</dd>
+    </dl>
+  </div>
+  {% endfor %}
+  {% endif %}
+</main>
+</body>
+</html>

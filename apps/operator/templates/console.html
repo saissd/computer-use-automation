@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Operator Console</title>
+  <meta http-equiv="refresh" content="5">
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+           margin: 0; background: #0f1216; color: #e6e9ee; }
+    header { background: #171b21; padding: 14px 22px; border-bottom: 1px solid #262c35; }
+    h1 { font-size: 15px; margin: 0; letter-spacing: .3px; }
+    .sub { color: #8b95a3; font-size: 12px; margin-top: 3px; }
+    main { padding: 22px; max-width: 1100px; }
+    h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .09em;
+         color: #8b95a3; margin: 26px 0 10px; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; color: #8b95a3; font-weight: 600; font-size: 11px;
+         text-transform: uppercase; letter-spacing: .06em;
+         border-bottom: 1px solid #262c35; padding: 8px 10px; }
+    td { padding: 10px; border-bottom: 1px solid #1c2128; vertical-align: top; }
+    tr:hover td { background: #151a20; }
+    a { color: #6ea8fe; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px;
+            font-size: 11px; font-weight: 600; }
+    .open { background: #4a2a16; color: #ffb570; }
+    .taken { background: #16324a; color: #79b8ff; }
+    .resolved { background: #1b3a22; color: #6fdc8c; }
+    .kind { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    .muted { color: #8b95a3; }
+    .empty { color: #8b95a3; padding: 22px 10px; font-size: 13px; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+           background: #1c2128; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Operator Console</h1>
+  <div class="sub">Human-in-the-loop interventions &middot; auto-refreshes every 5s</div>
+</header>
+
+<main>
+  <h2>Live sessions</h2>
+  {% if sessions %}
+  <table>
+    <tr><th>Session</th><th>Controlled by</th><th>Holder</th><th>Since</th><th>Lease expires</th></tr>
+    {% for sid, lease in sessions.items() %}
+    <tr>
+      <td><code>{{ sid }}</code></td>
+      <td>
+        {% if lease.owner == 'human' %}
+          <span class="pill taken">human</span>
+        {% else %}
+          <span class="pill resolved">automation</span>
+        {% endif %}
+      </td>
+      <td>{{ lease.holder }}</td>
+      <td class="muted">{{ lease.since[11:19] }}</td>
+      <td class="muted">{{ lease.expires_at[11:19] if lease.expires_at else '—' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty">No live sessions. Start a run to see one here.</div>
+  {% endif %}
+
+  <h2>Interventions</h2>
+  {% if interventions %}
+  <table>
+    <tr>
+      <th>State</th><th>Kind</th><th>Capability / goal</th>
+      <th>Stopped at</th><th>Reason</th><th>Raised</th>
+    </tr>
+    {% for i in interventions %}
+    <tr>
+      <td><span class="pill {{ i.state }}">{{ i.state }}</span></td>
+      <td class="kind">{{ i.kind }}</td>
+      <td><a href="/intervention/{{ i.id }}">{{ i.capability or i.goal or i.id }}</a></td>
+      <td class="muted">{{ i.step_id or '—' }}</td>
+      <td>{{ i.reason[:90] }}{% if i.reason|length > 90 %}…{% endif %}</td>
+      <td class="muted">{{ i.created_at.strftime('%H:%M:%S') }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty">Nothing needs a human right now.</div>
+  {% endif %}
+</main>
+</body>
+</html>

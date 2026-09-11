@@ -1,0 +1,73 @@
+{% extends "_chrome.html" %}
+{% block title %}Member {{ member.number }}{% endblock %}
+{% block heading %}Member Relationship Summary{% endblock %}
+{% block content %}
+
+<table class="panel" cellpadding="6" cellspacing="0" width="100%">
+<tr><td>
+  <table cellpadding="3" cellspacing="0">
+  <tr>
+    <td><font size="1"><b>Member Number</b></font></td>
+    <td><font size="2" face="Courier New"><b id="ctl00_lblMbrNo">{{ member.number }}</b></font></td>
+    <td width="30"></td>
+    <td><font size="1"><b>Member Name</b></font></td>
+    <td><font size="2"><b id="ctl00_lblMbrName">{{ member.name }}</b></font></td>
+  </tr>
+  <tr>
+    <td><font size="1"><b>Branch</b></font></td>
+    <td><font size="1">{{ member.branch }}</font></td>
+    <td></td>
+    <td><font size="1"><b>Member Since</b></font></td>
+    <td><font size="1">{{ member.since }}</font></td>
+  </tr>
+  <tr>
+    <td><font size="1"><b>SSN</b></font></td>
+    <td><font size="1">***-**-{{ member.ssn_last4 }}</font></td>
+    <td></td>
+    <td><font size="1"><b>Status</b></font></td>
+    <td><font size="1">Active</font></td>
+  </tr>
+  </table>
+</td></tr>
+</table>
+
+<br>
+<font size="2"><b>Share Accounts</b></font>
+<br><br>
+
+<!-- No test ids, no semantic table markup beyond th. Extraction of a specific
+     balance therefore has to be row-scoped: find the row whose type cell says
+     "Regular Savings", then read the balance cell in that row. -->
+<table class="grid" cellspacing="0" cellpadding="0" id="ctl00_grdAccounts">
+<tr>
+  <th>Account Number</th>
+  <th>Type</th>
+  <th>Status</th>
+  <th align="right">Current Balance</th>
+</tr>
+{% for a in member.accounts %}
+<tr{% if loop.index0 % 2 %} bgcolor="#f4f4f4"{% endif %}>
+  <td><font face="Courier New" size="1">{{ a.number }}</font></td>
+  <td><font size="1">{{ a.kind }}</font></td>
+  <td><font size="1">{{ a.status }}</font></td>
+  <td align="right"><font size="1">${{ "%.2f"|format(a.balance) }}</font></td>
+</tr>
+{% endfor %}
+</table>
+
+<br>
+<table cellpadding="0" cellspacing="0"><tr>
+  <td>
+    <form method="get" action="/member/{{ member.number }}/subaccount">
+      <input type="submit" class="btn" name="btnNewSub" value="Open Sub-Account">
+    </form>
+  </td>
+  <td width="8"></td>
+  <td>
+    <form method="get" action="/search">
+      <input type="submit" class="btn" name="btnBack" value="New Search">
+    </form>
+  </td>
+</tr></table>
+
+{% endblock %}

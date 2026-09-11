@@ -1,0 +1,18 @@
+{% extends "_chrome.html" %}
+{% block title %}Member Not Found{% endblock %}
+{% block heading %}Member Search{% endblock %}
+{% block content %}
+
+<!-- A legitimate business answer, not a crash. The replay engine detects this
+     and returns status=business_outcome, outcome=member_not_found. -->
+<div class="err" id="ctl00_ContentPlaceHolder1_lblNotFound">
+  <b>No member record found</b><br>
+  Member number {{ member_no }} does not exist in this institution.
+</div>
+
+<br>
+<form method="get" action="/search">
+  <input type="submit" class="btn" value="New Search">
+</form>
+
+{% endblock %}

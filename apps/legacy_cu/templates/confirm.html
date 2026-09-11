@@ -1,0 +1,45 @@
+{% extends "_chrome.html" %}
+{% block title %}Sub-Account Created{% endblock %}
+{% block heading %}Confirmation{% endblock %}
+{% block content %}
+
+<table class="panel" cellpadding="10" cellspacing="0">
+<tr><td>
+  <font size="3" color="#006600"><b id="ctl00_lblConfirmHdr">Sub-Account Created</b></font>
+  <br><br>
+  <table class="grid" cellspacing="0">
+  <tr><th colspan="2">Transaction Receipt</th></tr>
+  <tr>
+    <td><font size="1"><b>New Account Number</b></font></td>
+    <td><font size="2" face="Courier New"><b id="ctl00_lblNewAcct">{{ new_account }}</b></font></td>
+  </tr>
+  <tr>
+    <td><font size="1"><b>Member</b></font></td>
+    <td><font size="1">{{ member.number }} &mdash; {{ member.name }}</font></td>
+  </tr>
+  <tr>
+    <td><font size="1"><b>Account Type</b></font></td>
+    <td><font size="1">{{ acct_type }}</font></td>
+  </tr>
+  <tr>
+    <td><font size="1"><b>Opening Balance</b></font></td>
+    <td><font size="1">${{ "%.2f"|format(amount) }}</font></td>
+  </tr>
+  <tr>
+    <td><font size="1"><b>Nickname</b></font></td>
+    <td><font size="1">{{ nickname }}</font></td>
+  </tr>
+  <tr>
+    <td><font size="1"><b>Funded From</b></font></td>
+    <td><font size="1">{{ funding }}</font></td>
+  </tr>
+  </table>
+</td></tr>
+</table>
+
+<br>
+<form method="get" action="/member/{{ member.number }}">
+  <input type="submit" class="btn" value="Return to Member">
+</form>
+
+{% endblock %}

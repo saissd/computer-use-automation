@@ -1,0 +1,54 @@
+# Environment-level recovery handlers, per application.
+#
+# These describe conditions that belong to the *application*, not to any one
+# flow: a session timing out, the core throwing a 500, a maintenance notice
+# appearing. Every capability recorded against an app inherits them.
+#
+# Why this is configuration rather than something the model discovers:
+# a discovery run sees one happy path. It has no way to learn that this core
+# expires sessions after fifteen idle minutes, or what its error page looks
+# like — those conditions simply did not occur. Rediscovering them per
+# capability would be unreliable and would mean every capability handles them
+# slightly differently. Declaring them once per app is both more robust and
+# how a real integration team would actually work: you learn the app's failure
+# modes once and every automation against it benefits.
+#
+# Flow-specific business outcomes ("no such member") are NOT here. Those are
+# proposed by the generalisation pass because they are properties of the
+# capability, not of the application.
+
+meridian-core-membersvc:
+  description: >
+    Meridian Core 11.4 Member Services console. Frameset UI, ASP.NET-style
+    control ids, session cookie with a 15 minute idle timeout.
+  handlers:
+    - when:
+        kind: text_present
+        text: "Your session has expired"
+      do: reauth
+      max_attempts: 1
+      note: >
+        Idle timeout. Re-establish the application session and retry the step
+        once. If re-authentication fails, escalate rather than looping.
+
+    - when:
+        kind: text_present
+        text: "Server Error in"
+      do: fail
+      note: >
+        Unhandled application error. Not a business answer and not recoverable
+        by retrying: stop and surface a debuggable failure.
+
+    - when:
+        kind: text_present
+        text: "Scheduled maintenance"
+      do: dismiss
+      target:
+        primary:
+          by: role_name
+          role: button
+          name: Acknowledge
+      max_attempts: 2
+      note: >
+        Known maintenance interstitial. Expected noise that appears on any page
+        after a release; acknowledge it and continue.

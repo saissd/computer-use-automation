@@ -1,0 +1,20 @@
+{% extends "_chrome.html" %}
+{% block title %}Access Restricted{% endblock %}
+{% block heading %}Member Search{% endblock %}
+{% block content %}
+
+<!-- Also a business outcome: the automation worked correctly, the operator
+     role simply is not entitled to this record. The caller needs to know the
+     difference between this and "the record does not exist". -->
+<div class="err" id="ctl00_ContentPlaceHolder1_lblDenied">
+  <b>Access restricted</b><br>
+  Your security role is not entitled to view member {{ member_no }}.
+  Contact the Information Security officer to request entitlement REL-EXEC.
+</div>
+
+<br>
+<form method="get" action="/search">
+  <input type="submit" class="btn" value="New Search">
+</form>
+
+{% endblock %}

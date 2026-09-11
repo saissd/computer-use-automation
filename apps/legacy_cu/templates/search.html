@@ -1,0 +1,32 @@
+{% extends "_chrome.html" %}
+{% block title %}Member Search{% endblock %}
+{% block heading %}Member Search{% endblock %}
+{% block content %}
+
+{% if error %}
+<div class="err" id="ctl00_ContentPlaceHolder1_lblSearchErr">{{ error }}</div><br>
+{% endif %}
+
+<form method="post" action="/search">
+<table class="panel" cellpadding="8" cellspacing="0">
+<tr>
+  <td><font size="1"><b>Member Number</b></font></td>
+  <td>
+    <!-- Accessible name comes from title=, not a <label for>. This is the
+         common legacy pattern and the role+name locator still handles it. -->
+    <input type="text" class="txt" name="member_no"
+           id="ctl00_ContentPlaceHolder1_txtMbrNo"
+           title="Member Number" size="14" maxlength="9" autocomplete="off">
+  </td>
+  <td><input type="submit" class="btn" name="btnSearch" value="Search"></td>
+</tr>
+</table>
+</form>
+
+<br>
+<font size="1" color="#555">
+Enter a member number to retrieve the account relationship summary.<br>
+Training data set: 12345, 23456, 34567.
+</font>
+
+{% endblock %}

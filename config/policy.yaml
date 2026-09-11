@@ -1,0 +1,58 @@
+# Policy for the Meridian CU training environment.
+#
+# Everything not listed here is denied. This file is the entire scope of what
+# the agent is permitted to touch, and it is enforced between the model's
+# decision and the browser call — not in the prompt.
+
+allowed_domains:
+  - "127.0.0.1:8099"
+  - "localhost:8099"
+
+# Route allowlist. Note /_control/* is absent: the error-injection endpoints
+# exist for the test harness and the agent must never reach them.
+allowed_routes:
+  - "/"
+  - "/nav"
+  - "/login"
+  - "/search"
+  - "/member/*"
+  - "/logout"
+
+allowed_actions:
+  - click
+  - type
+  - select
+  - press
+  - extract
+  - navigate
+
+denied_actions:
+  - download
+  - upload
+  - file_dialog
+  - execute_script
+
+# Control text that marks an action as irreversible. Matched against the
+# accessible name of the control — the same text a human operator reads.
+irreversible_hints:
+  - delete
+  - remove
+  - "close account"
+  - transfer
+  - wire
+  - "submit payment"
+  - disburse
+  - "post transaction"
+  - void
+  - "charge off"
+  - purge
+  - authorize
+  - "send funds"
+  - withdraw
+
+# Never flip this on for an unattended run. It exists so an operator-approved
+# invocation can proceed after a human has signed off on the specific step.
+allow_irreversible: false
+
+max_steps: 40
+max_seconds: 300

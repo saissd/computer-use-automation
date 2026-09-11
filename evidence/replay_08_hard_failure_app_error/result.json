@@ -1,0 +1,49 @@
+{
+  "status": "failed",
+  "capability": "lookup_member_balance@1.0.0",
+  "run_id": "replay_08_hard_failure_app_error",
+  "outputs": {},
+  "outcome": null,
+  "outcome_detail": null,
+  "intervention_id": null,
+  "reason": null,
+  "error": {
+    "class": "app_error",
+    "step_id": "open_console",
+    "step_intent": "Open the Member Services console and wait for the search form",
+    "expected": "no error condition",
+    "observed": "text_present('Server Error in')",
+    "message": "Unhandled application error. Not recoverable and not a business answer."
+  },
+  "steps": [
+    {
+      "step_id": "open_console",
+      "intent": "Open the Member Services console and wait for the search form",
+      "action": "navigate",
+      "status": "failed",
+      "started_at": "2026-09-11T16:51:51.228418Z",
+      "duration_ms": 390,
+      "locator_tier": null,
+      "locator_used": null,
+      "value_redacted": null,
+      "extracted": null,
+      "recoveries_applied": [
+        "text_present('Server Error in')->fail"
+      ],
+      "attempts": 1,
+      "error": null,
+      "screenshot": null,
+      "note": null
+    }
+  ],
+  "evidence": {
+    "run_id": "replay_08_hard_failure_app_error",
+    "directory": "C:\\Users\\user\\computer-use-automation\\evidence\\replay_08_hard_failure_app_error",
+    "log_file": "run.jsonl",
+    "screenshots": [],
+    "dom_snapshot": null,
+    "trace": null
+  },
+  "started_at": "2026-09-11T16:51:51.803167Z",
+  "duration_ms": 577
+}

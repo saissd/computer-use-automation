@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head><title>Meridian CU - Sign On</title>
+<style type="text/css">
+ body { background:#5a6b7c; font-family:Verdana,Arial,sans-serif; font-size:11px; }
+ table.panel { border:2px outset #d4d0c8; background:#d4d0c8; }
+ .hdr { background:#3d4a56; color:#fff; font-weight:bold; padding:4px 8px; }
+ input.txt { border:1px inset #808080; font-family:Verdana; font-size:11px; }
+ input.btn { border:2px outset #d4d0c8; background:#d4d0c8; font-family:Verdana; font-size:11px; padding:2px 12px; }
+ .err { background:#ffe8e8; border:1px solid #cc0000; color:#990000; padding:6px; }
+</style>
+</head>
+<body>
+<br><br>
+<center>
+<table class="panel" cellpadding="0" cellspacing="0" width="380">
+<tr><td class="hdr">Sign On</td></tr>
+<tr><td>
+  <table cellpadding="8" width="100%">
+  <tr><td colspan="2">
+    <font size="4" face="Georgia"><b>MERIDIAN CU</b></font><br>
+    <font size="1">Member Services Console</font>
+  </td></tr>
+
+  {% if error %}
+  <tr><td colspan="2"><div class="err" id="ctl00_lblLoginErr">{{ error }}</div></td></tr>
+  {% endif %}
+
+  <form method="post" action="/login">
+  <tr>
+    <td width="110"><font size="1"><b>User ID</b></font></td>
+    <td><input type="text" class="txt" name="userid" id="ctl00_txtUserId"
+               title="User ID" size="22" autocomplete="off"></td>
+  </tr>
+  <tr>
+    <td><font size="1"><b>Password</b></font></td>
+    <td><input type="password" class="txt" name="passwd" id="ctl00_txtPasswd"
+               title="Password" size="22" autocomplete="off"></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><input type="submit" class="btn" name="btnSignOn" value="Sign On"></td>
+  </tr>
+  </form>
+
+  <tr><td colspan="2">
+    <hr size="1">
+    <font size="1" color="#555">Training environment. Synthetic data only.</font>
+  </td></tr>
+  </table>
+</td></tr>
+</table>
+</center>
+</body>
+</html>

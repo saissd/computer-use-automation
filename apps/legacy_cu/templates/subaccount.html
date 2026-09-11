@@ -1,0 +1,84 @@
+{% extends "_chrome.html" %}
+{% block title %}Open Sub-Account{% endblock %}
+{% block heading %}Open Sub-Account &mdash; Member {{ member.number }}{% endblock %}
+{% block content %}
+
+{% if errors %}
+<div class="err" id="ctl00_ContentPlaceHolder1_valSummary">
+  <b>The request could not be completed:</b>
+  <ul style="margin:4px 0 0 16px; padding:0;">
+  {% for field, msg in errors.items() %}<li>{{ msg }}</li>{% endfor %}
+  </ul>
+</div><br>
+{% endif %}
+
+<form method="post" action="/member/{{ member.number }}/subaccount">
+<table class="panel" cellpadding="6" cellspacing="0">
+
+<tr>
+  <td width="150"><font size="1"><b>Account Type</b></font></td>
+  <td>
+    <!-- title= supplies the accessible name -->
+    <select class="ddl" name="acct_type" id="ctl00_ddlAcctType" title="Account Type">
+      <option value="">-- select --</option>
+      {% for t in account_types %}
+      <option value="{{ t }}"{% if form.get('acct_type') == t %} selected{% endif %}>{{ t }}</option>
+      {% endfor %}
+    </select>
+    {% if errors.get('acct_type') %}<br><font class="fielderr">{{ errors['acct_type'] }}</font>{% endif %}
+  </td>
+</tr>
+
+<tr>
+  <td><font size="1"><b>Initial Deposit</b></font></td>
+  <td>
+    <!-- Deliberately unlabelled: no <label for>, no title, no placeholder.
+         Its accessible name is empty, so role+name cannot find it and the
+         resolver must fall back to text_near("Initial Deposit"). This is the
+         worst-but-common legacy case and the reason descriptors are ranked. -->
+    $<input type="text" class="txt" name="deposit" id="ctl00_txtDeposit"
+            size="14" value="{{ form.get('deposit','') }}" autocomplete="off">
+    {% if errors.get('deposit') %}<br><font class="fielderr" id="ctl00_valDeposit">{{ errors['deposit'] }}</font>{% endif %}
+  </td>
+</tr>
+
+<tr>
+  <td><label for="ctl00_txtNick"><font size="1"><b>Nickname</b></font></label></td>
+  <td>
+    <!-- Proper label association: the best case, and it does happen. -->
+    <input type="text" class="txt" name="nickname" id="ctl00_txtNick"
+           size="24" value="{{ form.get('nickname','') }}" autocomplete="off">
+    <font size="1" color="#777">&nbsp;optional</font>
+  </td>
+</tr>
+
+<tr>
+  <td><font size="1"><b>Funding Source</b></font></td>
+  <td>
+    <select class="ddl" name="funding" id="ctl00_ddlFunding" title="Funding Source">
+      <option value="">-- select --</option>
+      {% for f in funding_sources %}
+      <option value="{{ f }}"{% if form.get('funding') == f %} selected{% endif %}>{{ f }}</option>
+      {% endfor %}
+    </select>
+    {% if errors.get('funding') %}<br><font class="fielderr">{{ errors['funding'] }}</font>{% endif %}
+  </td>
+</tr>
+
+<tr>
+  <td></td>
+  <td>
+    <input type="submit" class="btn" name="btnCreate" value="Create Sub-Account">
+  </td>
+</tr>
+
+</table>
+</form>
+
+<br>
+<font size="1" color="#555">
+Single-transaction deposit limit for club and savings products is
+${{ "%.2f"|format(10000.0) }}.
+</font>
+
+{% endblock %}

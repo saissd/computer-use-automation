@@ -1,0 +1,117 @@
+{
+  "status": "success",
+  "capability": "lookup_member_balance@1.0.0",
+  "run_id": "replay_05_recovered_interstitial",
+  "outputs": {
+    "member_name": "Dana Whitfield",
+    "savings_balance": "$8412.55"
+  },
+  "outcome": null,
+  "outcome_detail": null,
+  "intervention_id": null,
+  "reason": null,
+  "error": null,
+  "steps": [
+    {
+      "step_id": "open_console",
+      "intent": "Open the Member Services console and wait for the search form",
+      "action": "navigate",
+      "status": "recovered",
+      "started_at": "2026-09-11T16:51:23.430144Z",
+      "duration_ms": 1280,
+      "locator_tier": null,
+      "locator_used": null,
+      "value_redacted": null,
+      "extracted": null,
+      "recoveries_applied": [
+        "text_present('Scheduled maintenance')->dismiss"
+      ],
+      "attempts": 2,
+      "error": null,
+      "screenshot": null,
+      "note": null
+    },
+    {
+      "step_id": "enter_member",
+      "intent": "Type the member number into the search field",
+      "action": "type",
+      "status": "ok",
+      "started_at": "2026-09-11T16:51:24.701810Z",
+      "duration_ms": 406,
+      "locator_tier": 0,
+      "locator_used": "role='textbox' name='Member Number'",
+      "value_redacted": "[REDACTED:member_id:len=5]",
+      "extracted": null,
+      "recoveries_applied": [],
+      "attempts": 1,
+      "error": null,
+      "screenshot": null,
+      "note": null
+    },
+    {
+      "step_id": "click_search",
+      "intent": "Run the member search and land on the relationship summary",
+      "action": "click",
+      "status": "ok",
+      "started_at": "2026-09-11T16:51:25.115896Z",
+      "duration_ms": 656,
+      "locator_tier": 0,
+      "locator_used": "role='button' name='Search'",
+      "value_redacted": null,
+      "extracted": null,
+      "recoveries_applied": [],
+      "attempts": 1,
+      "error": null,
+      "screenshot": null,
+      "note": null
+    },
+    {
+      "step_id": "extract_name",
+      "intent": "Read the member's name from the summary panel",
+      "action": "extract",
+      "status": "ok",
+      "started_at": "2026-09-11T16:51:25.778105Z",
+      "duration_ms": 265,
+      "locator_tier": 0,
+      "locator_used": "near='Member Name' dir=right",
+      "value_redacted": null,
+      "extracted": {
+        "member_name": "Dana Whitfield"
+      },
+      "recoveries_applied": [],
+      "attempts": 1,
+      "error": null,
+      "screenshot": null,
+      "note": null
+    },
+    {
+      "step_id": "extract_balance",
+      "intent": "Read the Regular Savings balance from the share accounts grid",
+      "action": "extract",
+      "status": "ok",
+      "started_at": "2026-09-11T16:51:26.051806Z",
+      "duration_ms": 250,
+      "locator_tier": 0,
+      "locator_used": "near='Regular Savings' dir=right",
+      "value_redacted": null,
+      "extracted": {
+        "savings_balance": "$8412.55"
+      },
+      "recoveries_applied": [],
+      "attempts": 1,
+      "error": null,
+      "screenshot": null,
+      "note": null
+    }
+  ],
+  "evidence": {
+    "run_id": "replay_05_recovered_interstitial",
+    "directory": "C:\\Users\\user\\computer-use-automation\\evidence\\replay_05_recovered_interstitial",
+    "log_file": "run.jsonl",
+    "screenshots": [],
+    "dom_snapshot": null,
+    "trace": null
+  },
+  "started_at": "2026-09-11T16:51:26.366294Z",
+  "duration_ms": 2937
+}
