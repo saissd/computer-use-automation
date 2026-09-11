@@ -422,7 +422,16 @@ class Stats(BaseModel):
 
     @property
     def success_rate(self) -> float:
-        return self.successes / self.replays if self.replays else 0.0
+        """Health of the *automation*, not of the data it was pointed at.
+
+        Business outcomes are excluded from the denominator on purpose. A
+        capability invoked a hundred times for members who do not exist is
+        working perfectly; counting those as misses would make the approval
+        gate and the drift report fire on healthy artifacts, which is how a
+        health signal gets ignored.
+        """
+        attempts = self.successes + self.failures
+        return self.successes / attempts if attempts else 0.0
 
 
 class Capability(BaseModel):

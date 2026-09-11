@@ -16,6 +16,16 @@ layer and not the first.
 The ordering matters for the same reason input validation beats output
 escaping: the earlier you stop the data, the fewer places you have to be
 right.
+
+**Redaction is a persistence boundary, not a return-value boundary.** The
+member id a caller passed in comes back to that caller unredacted in
+`ReplayResult.outcome_detail` — they supplied it, they already have it, and
+handing them `[REDACTED]` would make the result useless without protecting
+anything. What must never happen is that value reaching disk: artifacts, run
+logs and evidence all pass through `EvidenceWriter.log()`, which redacts
+unconditionally. Compare a `cu invoke` result on stdout with the same run's
+`result.json` — the file is redacted, the return value is not. That asymmetry
+is deliberate and is asserted by tests.
 """
 
 import re

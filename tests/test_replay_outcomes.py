@@ -267,3 +267,25 @@ async def test_pii_never_reaches_the_run_log(replay, capability):
     log = Path(result.evidence.directory, "run.jsonl").read_text(encoding="utf-8")
     assert MEMBER_OK not in log, "raw PII leaked into the structured log"
     assert "REDACTED" in log
+
+
+async def test_redaction_is_a_persistence_boundary_not_a_return_boundary(
+    replay, capability
+):
+    """The caller gets their own input back; disk never does.
+
+    Redacting a value the caller themselves supplied would make the result
+    useless while protecting nothing. The requirement is about persistence.
+    """
+    from pathlib import Path
+
+    result = await replay(capability, {"member_id": MEMBER_MISSING})
+    assert result.status == "business_outcome"
+
+    # Returned to the caller: readable, including the id they passed in.
+    assert MEMBER_MISSING in (result.outcome_detail or "")
+
+    # Written to disk: redacted, in both the log and the persisted result.
+    directory = Path(result.evidence.directory)
+    assert MEMBER_MISSING not in (directory / "run.jsonl").read_text(encoding="utf-8")
+    assert MEMBER_MISSING not in (directory / "result.json").read_text(encoding="utf-8")

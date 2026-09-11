@@ -56,6 +56,11 @@ TEMPLATE = re.compile(r"\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}")
 
 EscalationMode = Literal["return", "wait"]
 
+# Actions that can be repeated without repeating their effect. A click is
+# deliberately absent: re-clicking a submit button is how automation opens two
+# accounts instead of one.
+IDEMPOTENT_ACTIONS = frozenset({"navigate", "type", "select", "extract", "wait", "assert"})
+
 
 class InputValidationError(ValueError):
     pass
@@ -459,9 +464,16 @@ class ReplayEngine:
             if step.post_assert is not None:
                 ok = await self.surface.wait_for(step.post_assert, min(step.timeout_ms, 8_000))
                 if not ok:
-                    if attempts <= step.retries:
+                    # Retrying is only safe for actions that can be repeated
+                    # without repeating their effect. Re-running a click whose
+                    # assertion failed could submit a form twice — and in this
+                    # domain the second submission opens a second account or
+                    # moves money again. The wait above has already given a
+                    # slow page its chance; if the state still is not right, we
+                    # stop and say so rather than press the button again.
+                    if attempts <= step.retries and step.action in IDEMPOTENT_ACTIONS:
                         record.status = "recovered"
-                        record.note = "post-assert failed, retrying"
+                        record.note = "post-assert failed, retrying (idempotent action)"
                         continue
                     observed = await self._describe_current_state()
                     record.status = "failed"

@@ -388,16 +388,25 @@ class DiscoveryAgent:
         typed_values = {v for v in typed.values() if v}
 
         candidates: list[str] = []
-        for line in after.text.splitlines():
-            line = line.strip()
+        for raw in after.text.splitlines():
+            line = raw.strip()
             if not (8 <= len(line) <= 60) or line in old_lines:
                 continue
             if any(v and v in line for v in typed_values):
                 continue
-            digits = sum(c.isdigit() for c in line)
-            if digits / len(line) > 0.25:
-                continue  # looks like data, not chrome
             if not line[0].isupper():
+                continue
+
+            # A tab in innerText means a table row, and a table row on a
+            # detail screen is record data — a member's branch, a balance, an
+            # opening date. Asserting on it would bake this member into the
+            # artifact and break it for every other input.
+            if "	" in raw:
+                continue
+            # Chrome is words; data has digits. Requiring zero digits is
+            # blunt, and that is the point: a checkpoint is worth nothing if
+            # it is not true for every valid invocation.
+            if any(c.isdigit() for c in line):
                 continue
             candidates.append(line)
 

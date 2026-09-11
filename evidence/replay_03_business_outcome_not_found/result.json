@@ -14,8 +14,8 @@
       "intent": "Open the Member Services console and wait for the search form",
       "action": "navigate",
       "status": "ok",
-      "started_at": "2026-09-11T16:51:13.498490Z",
-      "duration_ms": 766,
+      "started_at": "2026-09-11T20:49:45.655667Z",
+      "duration_ms": 1202,
       "locator_tier": null,
       "locator_used": null,
       "value_redacted": null,
@@ -31,8 +31,8 @@
       "intent": "Type the member number into the search field",
       "action": "type",
       "status": "ok",
-      "started_at": "2026-09-11T16:51:14.267857Z",
-      "duration_ms": 468,
+      "started_at": "2026-09-11T20:49:46.870207Z",
+      "duration_ms": 531,
       "locator_tier": 0,
       "locator_used": "role='textbox' name='Member Number'",
       "value_redacted": "[REDACTED:member_id:len=5]",
@@ -48,8 +48,8 @@
       "intent": "Run the member search and land on the relationship summary",
       "action": "click",
       "status": "ok",
-      "started_at": "2026-09-11T16:51:14.744792Z",
-      "duration_ms": 656,
+      "started_at": "2026-09-11T20:49:47.402830Z",
+      "duration_ms": 905,
       "locator_tier": 0,
       "locator_used": "role='button' name='Search'",
       "value_redacted": null,
@@ -69,6 +69,6 @@
     "dom_snapshot": null,
     "trace": null
   },
-  "started_at": "2026-09-11T16:51:15.402725Z",
-  "duration_ms": 1891
+  "started_at": "2026-09-11T20:49:48.305278Z",
+  "duration_ms": 2640
 }

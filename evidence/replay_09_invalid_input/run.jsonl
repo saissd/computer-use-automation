@@ -1,2 +1,2 @@
-{"seq": 1, "at": "2026-09-11T16:51:54.845427+00:00", "run_id": "replay_09_invalid_input", "event": "input_invalid", "error": "input 'member_id' does not match required pattern '\\\\d{4,9}'"}
-{"seq": 2, "at": "2026-09-11T16:51:54.846425+00:00", "run_id": "replay_09_invalid_input", "event": "replay_end", "status": "failed", "duration_ms": 0}
+{"seq": 1, "at": "2026-09-11T20:50:37.170356+00:00", "run_id": "replay_09_invalid_input", "event": "input_invalid", "error": "input 'member_id' does not match required pattern '\\\\d{4,9}'"}
+{"seq": 2, "at": "2026-09-11T20:50:37.171352+00:00", "run_id": "replay_09_invalid_input", "event": "replay_end", "status": "failed", "duration_ms": 0}

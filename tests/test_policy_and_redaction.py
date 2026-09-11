@@ -201,3 +201,24 @@ def test_substitution_refuses_undeclared_parameters():
     """A step referring to a parameter the contract does not declare is a bug."""
     with pytest.raises(InputValidationError, match="undeclared input"):
         substitute("{{nope}}", {"member_id": "1"})
+
+
+# --------------------------------------------------------------------------
+# Health signal
+# --------------------------------------------------------------------------
+
+
+def test_business_outcomes_do_not_count_against_capability_health():
+    """A member who does not exist says nothing about whether replay works."""
+    from cua.core.models import Stats
+
+    healthy = Stats(replays=10, successes=6, business_outcomes=4, failures=0)
+    assert healthy.success_rate == 1.0, (
+        "business outcomes must not drag the rate down, or the drift report "
+        "fires on perfectly good artifacts and stops being read"
+    )
+
+    flaky = Stats(replays=10, successes=6, business_outcomes=2, failures=2)
+    assert flaky.success_rate == 0.75
+
+    assert Stats().success_rate == 0.0

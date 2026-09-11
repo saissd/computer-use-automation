@@ -182,6 +182,41 @@ Four rules, all testable:
 4. **Every step verifies its own post-state** before the next one runs.
    `test_replay_is_deterministic_across_runs` asserts two runs produce
    identical step logs and outputs.
+5. **A failed post-assertion never re-executes a non-idempotent action.**
+   Retrying a `navigate` or a `type` is free; retrying a `click` could submit
+   the form twice, and in this domain the second submission opens a second
+   account or moves money again. The wait has already given a slow page its
+   chance; if the state is still wrong, replay stops and says so rather than
+   pressing the button again.
+
+Rules 4 and 5 came out of a bug the tests found, described below.
+
+### Two bugs worth reporting
+
+Writing `test_discovered_artifact_replays` — replay what discovery recorded,
+but with a *different* member than it was recorded with — surfaced both.
+
+The recorder had inferred this checkpoint for the search step:
+
+```
+text_present('Branch	Cedar Falls Main		Member Since	2011-03-14')
+```
+
+Perfectly true for member 12345 and false for every other member. My
+contamination filter excluded values the run had *typed* and missed data that
+merely *appeared*. The fix is blunt on purpose: a tab in `innerText` means a
+table row, and a table row on a detail screen is record data; and a candidate
+containing any digit is rejected outright. A checkpoint is worth nothing if it
+is not true for every valid invocation, so a blunt filter that sometimes finds
+no checkpoint beats a clever one that sometimes finds a wrong checkpoint.
+
+The cascade it exposed was the more serious of the two. When that assertion
+failed, replay retried the step — **re-clicking a submit button**. On a lookup
+that is merely wasteful. On the sub-account flow the same app supports, it
+would have opened two accounts. Hence rule 5. I would rather surface this than
+quietly patch it: it is exactly the failure mode that makes UI automation
+dangerous in a bank, and it was invisible until a test replayed a recording
+with different data than it was recorded with.
 
 ### The taxonomy
 

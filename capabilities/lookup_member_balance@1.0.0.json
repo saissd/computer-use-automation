@@ -49,20 +49,12 @@
       "id": "open_console",
       "intent": "Open the Member Services console and wait for the search form",
       "action": "navigate",
-      "target": null,
-      "value": null,
       "url": "http://127.0.0.1:8099/",
-      "key": null,
-      "extract_as": null,
       "extract_kind": "text",
-      "extract_attribute": null,
-      "pre_wait": null,
       "post_assert": {
         "kind": "element_present",
-        "text": null,
         "role": "textbox",
         "name": "Member Number",
-        "pattern": null,
         "case_sensitive": false
       },
       "on_error": [
@@ -70,9 +62,6 @@
           "when": {
             "kind": "text_present",
             "text": "Scheduled maintenance",
-            "role": null,
-            "name": null,
-            "pattern": null,
             "case_sensitive": false
           },
           "do": "dismiss",
@@ -81,19 +70,11 @@
               "by": "role_name",
               "role": "button",
               "name": "Acknowledge",
-              "text": null,
-              "selector": null,
-              "anchor": null,
-              "direction": null,
               "offset": 1,
               "exact": false
             },
-            "fallbacks": [],
-            "scope": null,
-            "disambiguation": null,
-            "captured": null
+            "fallbacks": []
           },
-          "outcome": null,
           "max_attempts": 2,
           "wait_ms": 1000,
           "note": "Known maintenance interstitial. Expected noise, not a failure."
@@ -102,14 +83,9 @@
           "when": {
             "kind": "text_present",
             "text": "Your session has expired",
-            "role": null,
-            "name": null,
-            "pattern": null,
             "case_sensitive": false
           },
           "do": "reauth",
-          "target": null,
-          "outcome": null,
           "max_attempts": 1,
           "wait_ms": 1000,
           "note": "Idle timeout. Re-establish the application session and retry once."
@@ -118,14 +94,9 @@
           "when": {
             "kind": "text_present",
             "text": "Server Error in",
-            "role": null,
-            "name": null,
-            "pattern": null,
             "case_sensitive": false
           },
           "do": "fail",
-          "target": null,
-          "outcome": null,
           "max_attempts": 2,
           "wait_ms": 1000,
           "note": "Unhandled application error. Not recoverable and not a business answer."
@@ -143,20 +114,12 @@
           "by": "role_name",
           "role": "textbox",
           "name": "Member Number",
-          "text": null,
-          "selector": null,
-          "anchor": null,
-          "direction": null,
           "offset": 1,
           "exact": true
         },
         "fallbacks": [
           {
             "by": "text_near",
-            "role": null,
-            "name": null,
-            "text": null,
-            "selector": null,
             "anchor": "Member Number",
             "direction": "right",
             "offset": 1,
@@ -164,12 +127,7 @@
           },
           {
             "by": "css",
-            "role": null,
-            "name": null,
-            "text": null,
             "selector": "#ctl00_ContentPlaceHolder1_txtMbrNo",
-            "anchor": null,
-            "direction": null,
             "offset": 1,
             "exact": false
           }
@@ -177,36 +135,22 @@
         "scope": {
           "frame_path": [
             "content"
-          ],
-          "container_role": null,
-          "container_name": null
+          ]
         },
-        "disambiguation": null,
         "captured": {
           "role": "textbox",
           "name": "Member Number",
           "tag": "input",
-          "bbox": null,
-          "frame_url": null,
           "recorded_html_snippet": "<input type=text name=member_no title='Member Number'>"
         }
       },
       "value": "{{member_id}}",
-      "url": null,
-      "key": null,
-      "extract_as": null,
       "extract_kind": "text",
-      "extract_attribute": null,
-      "pre_wait": null,
-      "post_assert": null,
       "on_error": [
         {
           "when": {
             "kind": "text_present",
             "text": "Scheduled maintenance",
-            "role": null,
-            "name": null,
-            "pattern": null,
             "case_sensitive": false
           },
           "do": "dismiss",
@@ -215,19 +159,11 @@
               "by": "role_name",
               "role": "button",
               "name": "Acknowledge",
-              "text": null,
-              "selector": null,
-              "anchor": null,
-              "direction": null,
               "offset": 1,
               "exact": false
             },
-            "fallbacks": [],
-            "scope": null,
-            "disambiguation": null,
-            "captured": null
+            "fallbacks": []
           },
-          "outcome": null,
           "max_attempts": 2,
           "wait_ms": 1000,
           "note": "Interstitial can also appear on this page."
@@ -236,17 +172,11 @@
           "when": {
             "kind": "text_present",
             "text": "Your session has expired",
-            "role": null,
-            "name": null,
-            "pattern": null,
             "case_sensitive": false
           },
           "do": "reauth",
-          "target": null,
-          "outcome": null,
           "max_attempts": 1,
-          "wait_ms": 1000,
-          "note": null
+          "wait_ms": 1000
         }
       ],
       "timeout_ms": 10000,
@@ -261,22 +191,13 @@
           "by": "role_name",
           "role": "button",
           "name": "Search",
-          "text": null,
-          "selector": null,
-          "anchor": null,
-          "direction": null,
           "offset": 1,
           "exact": true
         },
         "fallbacks": [
           {
             "by": "css",
-            "role": null,
-            "name": null,
-            "text": null,
             "selector": "input[value='Search']",
-            "anchor": null,
-            "direction": null,
             "offset": 1,
             "exact": false
           }
@@ -284,33 +205,18 @@
         "scope": {
           "frame_path": [
             "content"
-          ],
-          "container_role": null,
-          "container_name": null
+          ]
         },
-        "disambiguation": null,
         "captured": {
           "role": "button",
           "name": "Search",
-          "tag": "input",
-          "bbox": null,
-          "frame_url": null,
-          "recorded_html_snippet": null
+          "tag": "input"
         }
       },
-      "value": null,
-      "url": null,
-      "key": null,
-      "extract_as": null,
       "extract_kind": "text",
-      "extract_attribute": null,
-      "pre_wait": null,
       "post_assert": {
         "kind": "text_present",
         "text": "Member Relationship Summary",
-        "role": null,
-        "name": null,
-        "pattern": null,
         "case_sensitive": false
       },
       "on_error": [
@@ -318,14 +224,9 @@
           "when": {
             "kind": "text_present",
             "text": "Server Error in",
-            "role": null,
-            "name": null,
-            "pattern": null,
             "case_sensitive": false
           },
           "do": "fail",
-          "target": null,
-          "outcome": null,
           "max_attempts": 2,
           "wait_ms": 1000,
           "note": "Core returned an application error rather than a record."
@@ -334,25 +235,16 @@
           "when": {
             "kind": "text_present",
             "text": "Your session has expired",
-            "role": null,
-            "name": null,
-            "pattern": null,
             "case_sensitive": false
           },
           "do": "reauth",
-          "target": null,
-          "outcome": null,
           "max_attempts": 1,
-          "wait_ms": 1000,
-          "note": null
+          "wait_ms": 1000
         },
         {
           "when": {
             "kind": "text_present",
             "text": "Scheduled maintenance",
-            "role": null,
-            "name": null,
-            "pattern": null,
             "case_sensitive": false
           },
           "do": "dismiss",
@@ -361,22 +253,13 @@
               "by": "role_name",
               "role": "button",
               "name": "Acknowledge",
-              "text": null,
-              "selector": null,
-              "anchor": null,
-              "direction": null,
               "offset": 1,
               "exact": false
             },
-            "fallbacks": [],
-            "scope": null,
-            "disambiguation": null,
-            "captured": null
+            "fallbacks": []
           },
-          "outcome": null,
           "max_attempts": 2,
-          "wait_ms": 1000,
-          "note": null
+          "wait_ms": 1000
         }
       ],
       "timeout_ms": 15000,
@@ -389,10 +272,6 @@
       "target": {
         "primary": {
           "by": "text_near",
-          "role": null,
-          "name": null,
-          "text": null,
-          "selector": null,
           "anchor": "Member Name",
           "direction": "right",
           "offset": 1,
@@ -401,12 +280,7 @@
         "fallbacks": [
           {
             "by": "css",
-            "role": null,
-            "name": null,
-            "text": null,
             "selector": "#ctl00_lblMbrName",
-            "anchor": null,
-            "direction": null,
             "offset": 1,
             "exact": false
           }
@@ -414,28 +288,16 @@
         "scope": {
           "frame_path": [
             "content"
-          ],
-          "container_role": null,
-          "container_name": null
+          ]
         },
-        "disambiguation": null,
         "captured": {
           "role": "generic",
           "name": "",
-          "tag": "td",
-          "bbox": null,
-          "frame_url": null,
-          "recorded_html_snippet": null
+          "tag": "td"
         }
       },
-      "value": null,
-      "url": null,
-      "key": null,
       "extract_as": "member_name",
       "extract_kind": "text",
-      "extract_attribute": null,
-      "pre_wait": null,
-      "post_assert": null,
       "on_error": [],
       "timeout_ms": 8000,
       "retries": 1
@@ -447,10 +309,6 @@
       "target": {
         "primary": {
           "by": "text_near",
-          "role": null,
-          "name": null,
-          "text": null,
-          "selector": null,
           "anchor": "Regular Savings",
           "direction": "right",
           "offset": 2,
@@ -459,12 +317,7 @@
         "fallbacks": [
           {
             "by": "css",
-            "role": null,
-            "name": null,
-            "text": null,
             "selector": "#ctl00_grdAccounts tr:has(td:text-is('Regular Savings')) td:nth-child(4)",
-            "anchor": null,
-            "direction": null,
             "offset": 1,
             "exact": false
           }
@@ -472,28 +325,16 @@
         "scope": {
           "frame_path": [
             "content"
-          ],
-          "container_role": null,
-          "container_name": null
+          ]
         },
-        "disambiguation": null,
         "captured": {
           "role": "generic",
           "name": "",
-          "tag": "td",
-          "bbox": null,
-          "frame_url": null,
-          "recorded_html_snippet": null
+          "tag": "td"
         }
       },
-      "value": null,
-      "url": null,
-      "key": null,
       "extract_as": "savings_balance",
       "extract_kind": "text",
-      "extract_attribute": null,
-      "pre_wait": null,
-      "post_assert": null,
       "on_error": [],
       "timeout_ms": 8000,
       "retries": 1
@@ -502,9 +343,6 @@
   "checkpoint": {
     "kind": "text_present",
     "text": "Member Relationship Summary",
-    "role": null,
-    "name": null,
-    "pattern": null,
     "case_sensitive": false
   },
   "outcomes": [
@@ -514,27 +352,16 @@
       "detect": {
         "kind": "text_present",
         "text": "No member record found",
-        "role": null,
-        "name": null,
-        "pattern": null,
         "case_sensitive": false
       },
       "detail_from": {
         "primary": {
           "by": "css",
-          "role": null,
-          "name": null,
-          "text": null,
           "selector": "#ctl00_ContentPlaceHolder1_lblNotFound",
-          "anchor": null,
-          "direction": null,
           "offset": 1,
           "exact": false
         },
-        "fallbacks": [],
-        "scope": null,
-        "disambiguation": null,
-        "captured": null
+        "fallbacks": []
       }
     },
     {
@@ -543,44 +370,31 @@
       "detect": {
         "kind": "text_present",
         "text": "Access restricted",
-        "role": null,
-        "name": null,
-        "pattern": null,
         "case_sensitive": false
       },
       "detail_from": {
         "primary": {
           "by": "css",
-          "role": null,
-          "name": null,
-          "text": null,
           "selector": "#ctl00_ContentPlaceHolder1_lblDenied",
-          "anchor": null,
-          "direction": null,
           "offset": 1,
           "exact": false
         },
-        "fallbacks": [],
-        "scope": null,
-        "disambiguation": null,
-        "captured": null
+        "fallbacks": []
       }
     }
   ],
   "provenance": {
     "discovered_by": "hand_authored",
-    "model": null,
     "goal": "Look up member 12345 and read their current savings balance",
-    "run_id": null,
     "recorded_at": "2026-09-11T00:00:00Z",
     "evidence_ref": "evidence/README.md"
   },
   "stats": {
-    "replays": 1,
-    "successes": 1,
-    "business_outcomes": 0,
+    "replays": 3,
+    "successes": 2,
+    "business_outcomes": 1,
     "failures": 0,
-    "last_ok": "2026-09-11T16:38:18.670077Z",
+    "last_ok": "2026-09-11T20:49:21.219778Z",
     "fallback_resolutions": 0
   }
 }
