@@ -27,8 +27,16 @@ Only `cu discover` needs a model API key. Everything else — replay, the error
 suite, the human-handoff demo, the whole test suite — runs offline.
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...   # or: ant auth login
+export ANTHROPIC_API_KEY=sk-ant-...   # default model: claude-opus-5
+# or
+export OPENAI_API_KEY=sk-...          # default model: gpt-4.1
 ```
+
+`cu discover` picks whichever key is set; force one with `--provider openai`
+and override the model with `--model`. Both providers run the identical loop:
+OpenAI is adapted at the client boundary
+([`discovery/llm_openai.py`](src/cua/discovery/llm_openai.py)), not in the
+agent.
 
 ---
 
@@ -128,7 +136,7 @@ arguments, and a structured JSON result — no browser knowledge required.
 ## Tests
 
 ```bash
-pytest -q          # 65 tests, ~2 minutes, no API key, no network
+pytest -q          # 75 tests, ~4 minutes, no API key, no network
 ```
 
 They run against the real app in a real browser, because the claims worth

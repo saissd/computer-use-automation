@@ -131,7 +131,10 @@ def discover(
     goal: str = typer.Option(..., help="What to accomplish, in natural language."),
     entry: str = typer.Option(DEFAULT_BASE, help="Application entry point."),
     app_id: str = typer.Option(DEFAULT_APP_ID, help="Vendor product id."),
-    model: str = typer.Option("claude-opus-5"),
+    provider: str = typer.Option(
+        "auto", help="Model provider: auto | anthropic | openai. auto picks whichever key is set."
+    ),
+    model: Optional[str] = typer.Option(None, help="Model id. Defaults per provider."),
     user: str = typer.Option("teller01"),
     password: str = typer.Option("training-only"),
     headful: bool = typer.Option(False, help="Watch the run in a visible browser."),
@@ -139,27 +142,44 @@ def discover(
     out: Path = typer.Option(ROOT / "capabilities"),
 ):
     """Run the LLM-driven discovery loop and save a capability artifact."""
-    if not (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
-        console.print(
-            "[red]No Anthropic credentials found.[/red] Set ANTHROPIC_API_KEY "
-            "(or run `ant auth login`) before `cu discover`.\n"
-            "Everything else in this project runs without a key: see `cu replay`."
-        )
-        raise typer.Exit(2)
-
+    client, model = _llm_client(provider, model)
+    console.print(f"[dim]model {model}[/dim]")
     asyncio.run(
-        _discover(goal, entry, app_id, model, user, password, headful, verify, out)
+        _discover(goal, entry, app_id, client, model, user, password, headful, verify, out)
     )
 
 
-async def _discover(goal, entry, app_id, model, user, password, headful, verify, out):
-    import anthropic
+def _llm_client(provider: str, model: Optional[str]):
+    """Pick the discovery model backend. Replay never reaches this."""
+    has_anthropic = bool(
+        os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")
+    )
+    has_openai = bool(os.environ.get("OPENAI_API_KEY"))
+    if provider == "auto":
+        provider = "anthropic" if has_anthropic else "openai" if has_openai else ""
 
+    if provider == "anthropic" and has_anthropic:
+        import anthropic
+
+        return anthropic.Anthropic(), model or "claude-opus-5"
+    if provider == "openai" and has_openai:
+        from cua.discovery.llm_openai import DEFAULT_OPENAI_MODEL, OpenAIMessagesClient
+
+        return OpenAIMessagesClient(), model or DEFAULT_OPENAI_MODEL
+
+    console.print(
+        "[red]No model credentials found.[/red] Set ANTHROPIC_API_KEY or "
+        "OPENAI_API_KEY before `cu discover`.\n"
+        "Everything else in this project runs without a key: see `cu replay`."
+    )
+    raise typer.Exit(2)
+
+
+async def _discover(goal, entry, app_id, client, model, user, password, headful, verify, out):
     from cua.discovery.agent import DiscoveryAgent
     from cua.discovery.generalize import generalize
     from cua.discovery.profiles import load_recovery_profile
 
-    client = anthropic.Anthropic()
     policy = _policy()
     handlers = load_recovery_profile(app_id, ROOT / "config" / "recovery_profiles.yaml")
     console.print(
