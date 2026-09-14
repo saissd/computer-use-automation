@@ -15,6 +15,7 @@ import asyncio
 import json
 import os
 import statistics
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -110,7 +111,7 @@ def serve_app(port: int = 8099):
     """Run the legacy target application."""
     import uvicorn
 
-    uvicorn.run("apps.legacy_cu.app:app", port=port, log_level="warning")
+    uvicorn.run("apps.legacy_cu.app:app", port=port, log_level="warning", app_dir=str(ROOT))
 
 
 @app.command("console")
@@ -118,7 +119,7 @@ def console_cmd(port: int = 8100):
     """Run the operator console on its own (no live session attached)."""
     import uvicorn
 
-    uvicorn.run("apps.operator.app:app", port=port, log_level="warning")
+    uvicorn.run("apps.operator.app:app", port=port, log_level="warning", app_dir=str(ROOT))
 
 
 # ---------------------------------------------------------------------------
@@ -518,6 +519,7 @@ async def _handoff_demo(capability_id, member, base, port, headful, catalog_dir)
     cat = Catalog(catalog_dir)
     capability = cat.get(capability_id)
 
+    sys.path.insert(0, str(ROOT))  # `apps` lives at the repo root, not in the package
     config = uvicorn.Config("apps.operator.app:app", port=port, log_level="error")
     server = uvicorn.Server(config)
     server_task = asyncio.create_task(server.serve())
