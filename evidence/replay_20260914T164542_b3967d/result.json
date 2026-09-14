@@ -1,0 +1,81 @@
+{
+  "status": "failed",
+  "capability": "lookup_member_savings_balance@1.0.0",
+  "run_id": "replay_20260914T164542_b3967d",
+  "outputs": {},
+  "outcome": null,
+  "outcome_detail": null,
+  "intervention_id": null,
+  "reason": null,
+  "error": {
+    "class": "step_assert_failed",
+    "step_id": "s2_click_search",
+    "step_intent": "Click the Search button to look up member number {{member_number}}.",
+    "expected": "text_present('Member Relationship Summary')",
+    "observed": "url=http://127.0.0.1:8099/ title='Meridian CU - Member Services Console' text='MERIDIAN CU \\xa0\\xa0Member Services Console\\xa0\\xa0v11.4.1\\tMember Search | Sign Off Member Search Access restricted Your security role is not entitled to view member [REDACTED]. Contact the Information Security office' controls=[[10000] link \"Member Search\" frame=nav | [10001] link \"Sign Off\" frame=nav | [10002] cell value='MERIDIAN CU Member Services Console v11.4.1' row='MERIDIAN CU Member Services Console v11.4.1 | Member Search | Sign Off' | [20000] button \"New Search\" value='New Search' frame=content | [20001] cell value='Member Search' row='Member Search']",
+    "message": "step ran but did not produce the expected state"
+  },
+  "steps": [
+    {
+      "step_id": "s0_open",
+      "intent": "Open the application at its entry point",
+      "action": "navigate",
+      "status": "ok",
+      "started_at": "2026-09-14T16:45:44.210901Z",
+      "duration_ms": 797,
+      "locator_tier": null,
+      "locator_used": null,
+      "value_redacted": null,
+      "extracted": null,
+      "recoveries_applied": [],
+      "attempts": 1,
+      "error": null,
+      "screenshot": null,
+      "note": null
+    },
+    {
+      "step_id": "s1_type_member_number",
+      "intent": "Type member number {{member_number}} into the Member Number field.",
+      "action": "type",
+      "status": "ok",
+      "started_at": "2026-09-14T16:45:45.003841Z",
+      "duration_ms": 843,
+      "locator_tier": 0,
+      "locator_used": "role='textbox' name='Member Number'",
+      "value_redacted": "[REDACTED:member_number:len=5]",
+      "extracted": null,
+      "recoveries_applied": [],
+      "attempts": 1,
+      "error": null,
+      "screenshot": null,
+      "note": null
+    },
+    {
+      "step_id": "s2_click_search",
+      "intent": "Click the Search button to look up member number {{member_number}}.",
+      "action": "click",
+      "status": "failed",
+      "started_at": "2026-09-14T16:45:45.857208Z",
+      "duration_ms": 15483,
+      "locator_tier": 0,
+      "locator_used": "role='button' name='Search'",
+      "value_redacted": null,
+      "extracted": null,
+      "recoveries_applied": [],
+      "attempts": 1,
+      "error": null,
+      "screenshot": null,
+      "note": null
+    }
+  ],
+  "evidence": {
+    "run_id": "replay_20260914T164542_b3967d",
+    "directory": "C:\\Users\\user\\computer-use-automation\\evidence\\replay_20260914T164542_b3967d",
+    "log_file": "run.jsonl",
+    "screenshots": [],
+    "dom_snapshot": null,
+    "trace": null
+  },
+  "started_at": "2026-09-14T16:46:01.599798Z",
+  "duration_ms": 17391
+}

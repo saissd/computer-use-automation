@@ -31,6 +31,7 @@ from cua.discovery.prompts import (
     GENERALIZE_SYSTEM,
     generalize_message,
 )
+from cua.policy.redaction import Redactor
 
 DEFAULT_MODEL = "claude-opus-5"
 
@@ -143,6 +144,25 @@ def apply_generalization(
             )
         )
     cap.inputs = inputs
+
+    # --- scrub this run's data out of everything a reviewer reads ----------
+    # The model writes intents in the words of the run ("look up member
+    # 12345"), and the captured HTML snippet of a value cell *is* the value.
+    # Parameters become placeholders; anything else the run saw is redacted.
+    literals = {p.example: p.name for p in inputs if p.example}
+    scrub = Redactor(set(literals) | {v for v in outputs.values() if v}, strict=True)
+    for step in cap.steps:
+        for literal, name in literals.items():
+            step.intent = step.intent.replace(literal, "{{" + name + "}}")
+        step.intent = scrub.text(step.intent)
+        captured = step.target.captured if step.target else None
+        if captured and captured.recorded_html_snippet:
+            captured.recorded_html_snippet = scrub.text(captured.recorded_html_snippet)
+    by_literal = Redactor(set(literals))
+    cap.name = by_literal.text(cap.name)
+    cap.description = by_literal.text(cap.description)
+    if cap.provenance and cap.provenance.goal:
+        cap.provenance.goal = scrub.text(cap.provenance.goal)
 
     # --- outputs: only those that a real extract step produced -------------
     extract_steps = {s.extract_as: s.id for s in cap.steps if s.action == "extract"}

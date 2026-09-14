@@ -71,7 +71,19 @@ being saved to `capabilities/`.
 
 Add `--headful` to watch it work.
 
+The committed live run (`gpt-4.1`, evidence in
+[evidence/](evidence/README.md#the-discovery-run)) was saved with
+`--out capabilities/discovered`. Replay what the model discovered — with a
+different member than it was recorded with:
+
+```bash
+cu replay lookup_member_savings_balance --catalog-dir capabilities/discovered --input member_number=23456
+```
+
 ### 3. Replay the artifact deterministically
+
+`capabilities/lookup_member_balance@1.0.0.json` is a hand-authored reference
+artifact for the same flow; the error suite and handoff demo run against it.
 
 ```bash
 cu replay lookup_member_balance --input member_id=12345
@@ -137,7 +149,7 @@ arguments, and a structured JSON result — no browser knowledge required.
 ## Tests
 
 ```bash
-pytest -q          # 75 tests, ~4 minutes, no API key, no network
+pytest -q          # 80 tests, ~4 minutes, no API key, no network
 ```
 
 They run against the real app in a real browser, because the claims worth
@@ -151,6 +163,8 @@ under a real surface.
 | `test_locator.py` | primary vs fallback vs ambiguous resolution, frame scoping |
 | `test_handoff.py` | escalation, lease transfer, resume, abort, lease expiry |
 | `test_policy_and_redaction.py` | allowlist, risk classification, redaction, input contract |
+| `test_discovery.py` | the discovery loop with a scripted model: descriptor capture, value extraction, no run data on disk, discovered artifact replays |
+| `test_llm_openai.py` | the OpenAI backend's translation to and from the loop's message shape |
 
 ---
 

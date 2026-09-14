@@ -277,6 +277,43 @@ async def test_discovery_log_holds_no_run_data(agent):
     assert "8412.55" not in log, "extracted balance reached the discovery log"
 
 
+async def test_saved_artifact_holds_no_run_data(agent, tmp_path):
+    """The model's own words and the recorded HTML both carry this run's data.
+
+    Found on the first live run: the model wrote "look up member 12345" into
+    an intent, and the snippet captured from the balance cell was the balance.
+    """
+    from cua.catalog.catalog import Catalog
+
+    chatty_type = (
+        "type",
+        lambda text: {
+            "ref": _find_ref(text, "textbox", "Member Number"),
+            "text": "12345",
+            "intent": "Type member 12345 into the search field",
+        },
+    )
+    a, _ = agent([chatty_type] + PLAN[1:])
+    result = await a.run("look up member 12345", BASE_URL + "/", "meridian-core-membersvc")
+    assert result.status == "success", result.reason
+
+    spec = {
+        "id": "lookup", "name": "Lookup", "description": "Look up a member.",
+        "risk_class": "read_only", "risk_rationale": "read only",
+        "parameters": [{
+            "name": "member_id", "literal_value": "12345", "type": "string",
+            "description": "", "pattern": "", "sensitivity": "pii",
+        }],
+        "outputs": [], "outcomes": [],
+    }
+    final = apply_generalization(result.capability, spec, result.raw_outputs)
+    saved = Catalog(tmp_path).save(final).read_text(encoding="utf-8")
+
+    assert "12345" not in saved
+    assert "8412.55" not in saved
+    assert "{{member_id}}" in final.steps[1].intent
+
+
 async def test_generalization_parameterises_without_touching_steps(agent):
     """The model names and parameterises; it does not rewrite the flow."""
     a, _ = agent(PLAN[:2] + [PLAN[3]])

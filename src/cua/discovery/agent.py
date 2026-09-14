@@ -17,6 +17,7 @@ ends the run and raises an intervention with enough context for a human to
 pick it up.
 """
 
+import asyncio
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -246,7 +247,9 @@ class DiscoveryAgent:
                 steps.append(step)
                 recent_actions.append(f"{name}:{args.get('ref')}:{args.get('text','')}")
 
-            obs = await self.surface.observe(screenshot=True)
+            obs = await self._observe_after(
+                before, expect_change=step is not None and name in ("click", "press", "select")
+            )
             recent_hashes.append(obs.state_hash)
 
             if step is not None and ok:
@@ -267,6 +270,25 @@ class DiscoveryAgent:
             )
 
     # ----------------------------------------------------------------------
+
+    async def _observe_after(self, before: Observation, *, expect_change: bool) -> Observation:
+        """Observe once an action's effect has had a chance to land.
+
+        A submit inside a frameset can return from click() before the frame
+        has even started navigating, so waiting on load state sees the old,
+        fully loaded document. Observing then hands the model a stale page and
+        makes the step look like it did nothing — no post-assertion, and a
+        false no-progress signal. So for actions that can navigate, poll
+        briefly for the state to move. A click that genuinely does nothing
+        still costs two seconds, not a stall.
+        """
+        if expect_change:
+            for _ in range(10):
+                probe = await self.surface.observe()
+                if probe.state_hash != before.state_hash:
+                    break
+                await asyncio.sleep(0.2)
+        return await self.surface.observe(screenshot=True)
 
     async def _execute(
         self,

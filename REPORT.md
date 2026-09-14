@@ -467,19 +467,39 @@ Decided up front and documented, rather than discovered by running out of time.
    policy-checked step, recorded as evidence and requiring approval before it is
    written back. Never open-ended.
 
-### One honest gap
+### What the first live run found
 
-`evidence/` contains ten replay runs covering the full taxonomy, all
-reproducible offline via `scripts/make_evidence.py`. It does **not** yet contain
-a discovery run, because the machine this was built on had no model API key.
-The discovery loop is complete and is the code path `cu discover` exercises;
-producing the evidence is one command with a key set:
+Discovery evidence comes from real `gpt-4.1` runs ([evidence/](evidence/README.md#the-discovery-run)).
+The first escalated. Fixing why surfaced four defects the scripted-model tests
+had missed — the script picked targets the real model had no way to pick.
 
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-cu discover --goal "look up member 12345 and read their current savings balance"
-```
+1. **Values had no refs.** The observation numbered controls only, so a
+   balance in a bare `<td>` could be seen but not extracted; the offline test
+   had been "extracting" from a button. Cells are now listed as readable
+   values, and an extraction is anchored on the nearest *unique, digit-free*
+   label in its row. The immediate neighbour of a balance is the account
+   status, "Active" — data, repeated on every row.
+2. **The model reasoned over stale pages.** A submit inside the frameset can
+   return before the content frame starts navigating, so the next observation
+   showed the old page, or none. `observe()` now settles in-flight frame
+   loads, and after a click, press or select discovery waits briefly for the
+   state to change. The second half was found by a test that flaked after the
+   first half landed. A handoff test had been passing only because it raced the
+   same redirect.
+3. **Unclassified data reached disk.** Redaction keys off declared
+   sensitivity, and nothing is declared until generalisation, so the member
+   number and balance went into the discovery log, the model-written intents,
+   and a captured HTML snippet. Discovery now redacts every amount and 4+ digit
+   run, generalisation templates literals out of intents, and `Catalog.save`
+   strips `pii` examples.
+4. **Outcome detectors were invented.** The model declared "Member not found"
+   for a page that says "No member record found". Replay failed safely with the
+   true text in `observed`, and the reviewed `1.0.1` fixes it. The lesson is
+   structural: a model cannot describe pages it never saw, so discovered outcome
+   detectors are drafts until a negative-input replay confirms them. Running
+   that replay inside `cu discover --verify` is the next thing I would build.
 
-It runs the loop, generalises, replays the result to verify it, and writes both
-the artifact and the evidence. I would rather say this plainly than imply a run
-happened that did not.
+The provider is OpenAI rather than Claude because that was the key available.
+The loop is unchanged: [`discovery/llm_openai.py`](src/cua/discovery/llm_openai.py)
+presents the Messages-shaped client the loop already calls and translates at
+the boundary.

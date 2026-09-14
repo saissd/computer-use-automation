@@ -268,16 +268,7 @@ async def _discover(goal, entry, app_id, client, model, user, password, headful,
                 capability.stats.replays = 1
                 capability.stats.successes = 1
 
-        # An artifact is a persisted, reviewed, shared file: the recording
-        # member's id does not belong in it, not as an example and not inside
-        # the goal sentence the model was given.
-        literals = Redactor(set(examples.values()), strict=True)
-        for param in capability.inputs:
-            if param.sensitivity in ("pii", "secret"):
-                param.example = None
-        capability.provenance.goal = literals.text(capability.provenance.goal)
-
-        path = Catalog(out).save(capability)
+        path = Catalog(out).save(capability)  # strips pii/secret examples
         console.print(f"\n[green]saved[/green] {path}")
         console.print(f"[dim]evidence: {ev.dir}[/dim]")
         console.print(

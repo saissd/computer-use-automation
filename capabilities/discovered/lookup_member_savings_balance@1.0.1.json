@@ -1,0 +1,403 @@
+{
+  "schema_version": "1.0",
+  "id": "lookup_member_savings_balance",
+  "name": "Look up member savings balance",
+  "version": "1.0.1",
+  "status": "draft",
+  "description": "Retrieves the current balance of the 'Regular Savings' account for a specified member. Requires the member's number as input. Returns the current savings balance as a money value.",
+  "target": {
+    "app_id": "meridian-core-membersvc",
+    "surface": "legacy_web",
+    "entry": "http://127.0.0.1:8099"
+  },
+  "inputs": [
+    {
+      "name": "member_number",
+      "type": "string",
+      "required": true,
+      "description": "The unique number identifying the member whose savings balance should be retrieved.",
+      "pattern": "^[0-9]{1,10}$",
+      "sensitivity": "pii"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "savings_balance",
+      "type": "money",
+      "from_step": "s2_extract_savings_balance",
+      "required": true,
+      "description": "The current available balance in the member's 'Regular Savings' account."
+    }
+  ],
+  "risk": {
+    "class": "read_only",
+    "requires_approval": false,
+    "rationale": "This capability only reads and returns existing balance information; it does not create or alter any records or move funds."
+  },
+  "preconditions": [],
+  "steps": [
+    {
+      "id": "s0_open",
+      "intent": "Open the application at its entry point",
+      "action": "navigate",
+      "url": "http://127.0.0.1:8099",
+      "extract_kind": "text",
+      "on_error": [
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "Your session has expired",
+            "case_sensitive": false
+          },
+          "do": "reauth",
+          "max_attempts": 1,
+          "wait_ms": 1000,
+          "note": "Idle timeout. Re-establish the application session and retry the step once. If re-authentication fails, escalate rather than looping.\n"
+        },
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "Server Error in",
+            "case_sensitive": false
+          },
+          "do": "fail",
+          "max_attempts": 2,
+          "wait_ms": 1000,
+          "note": "Unhandled application error. Not a business answer and not recoverable by retrying: stop and surface a debuggable failure.\n"
+        },
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "Scheduled maintenance",
+            "case_sensitive": false
+          },
+          "do": "dismiss",
+          "target": {
+            "primary": {
+              "by": "role_name",
+              "role": "button",
+              "name": "Acknowledge",
+              "offset": 1,
+              "exact": false
+            },
+            "fallbacks": []
+          },
+          "max_attempts": 2,
+          "wait_ms": 1000,
+          "note": "Known maintenance interstitial. Expected noise that appears on any page after a release; acknowledge it and continue.\n"
+        }
+      ],
+      "timeout_ms": 15000,
+      "retries": 1
+    },
+    {
+      "id": "s1_type_member_number",
+      "intent": "Type member number {{member_number}} into the Member Number field.",
+      "action": "type",
+      "target": {
+        "primary": {
+          "by": "role_name",
+          "role": "textbox",
+          "name": "Member Number",
+          "offset": 1,
+          "exact": true
+        },
+        "fallbacks": [
+          {
+            "by": "text_near",
+            "anchor": "Member Number",
+            "direction": "right",
+            "offset": 1,
+            "exact": false
+          },
+          {
+            "by": "css",
+            "selector": "#ctl00_ContentPlaceHolder1_txtMbrNo",
+            "offset": 1,
+            "exact": false
+          }
+        ],
+        "scope": {
+          "frame_path": [
+            "content"
+          ]
+        },
+        "captured": {
+          "role": "textbox",
+          "name": "Member Number",
+          "tag": "input",
+          "bbox": {
+            "x": 129.5,
+            "y": 45.0,
+            "w": 118.0,
+            "h": 17.0
+          },
+          "recorded_html_snippet": "<input type=\"text\" class=\"txt\" name=\"member_no\" id=\"ctl00_ContentPlaceHolder1_txtMbrNo\" title=\"Member Number\" size=\"14\" maxlength=\"9\" autocomplete=\"off\" data-cu"
+        }
+      },
+      "value": "{{member_number}}",
+      "extract_kind": "text",
+      "on_error": [
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "Your session has expired",
+            "case_sensitive": false
+          },
+          "do": "reauth",
+          "max_attempts": 1,
+          "wait_ms": 1000,
+          "note": "Idle timeout. Re-establish the application session and retry the step once. If re-authentication fails, escalate rather than looping.\n"
+        },
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "Server Error in",
+            "case_sensitive": false
+          },
+          "do": "fail",
+          "max_attempts": 2,
+          "wait_ms": 1000,
+          "note": "Unhandled application error. Not a business answer and not recoverable by retrying: stop and surface a debuggable failure.\n"
+        },
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "Scheduled maintenance",
+            "case_sensitive": false
+          },
+          "do": "dismiss",
+          "target": {
+            "primary": {
+              "by": "role_name",
+              "role": "button",
+              "name": "Acknowledge",
+              "offset": 1,
+              "exact": false
+            },
+            "fallbacks": []
+          },
+          "max_attempts": 2,
+          "wait_ms": 1000,
+          "note": "Known maintenance interstitial. Expected noise that appears on any page after a release; acknowledge it and continue.\n"
+        }
+      ],
+      "timeout_ms": 10000,
+      "retries": 1
+    },
+    {
+      "id": "s2_click_search",
+      "intent": "Click the Search button to look up member number {{member_number}}.",
+      "action": "click",
+      "target": {
+        "primary": {
+          "by": "role_name",
+          "role": "button",
+          "name": "Search",
+          "offset": 1,
+          "exact": true
+        },
+        "fallbacks": [
+          {
+            "by": "css",
+            "selector": "[name='btnSearch']",
+            "offset": 1,
+            "exact": false
+          }
+        ],
+        "scope": {
+          "frame_path": [
+            "content"
+          ]
+        },
+        "captured": {
+          "role": "button",
+          "name": "Search",
+          "tag": "input",
+          "bbox": {
+            "x": 263.5,
+            "y": 43.0,
+            "w": 62.078125,
+            "h": 21.0
+          },
+          "recorded_html_snippet": "<input type=\"submit\" class=\"btn\" name=\"btnSearch\" value=\"Search\" style=\"\" data-cua-ref=\"1\">"
+        }
+      },
+      "extract_kind": "text",
+      "post_assert": {
+        "kind": "text_present",
+        "text": "Member Relationship Summary",
+        "case_sensitive": false
+      },
+      "on_error": [
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "Your session has expired",
+            "case_sensitive": false
+          },
+          "do": "reauth",
+          "max_attempts": 1,
+          "wait_ms": 1000,
+          "note": "Idle timeout. Re-establish the application session and retry the step once. If re-authentication fails, escalate rather than looping.\n"
+        },
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "Server Error in",
+            "case_sensitive": false
+          },
+          "do": "fail",
+          "max_attempts": 2,
+          "wait_ms": 1000,
+          "note": "Unhandled application error. Not a business answer and not recoverable by retrying: stop and surface a debuggable failure.\n"
+        },
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "Scheduled maintenance",
+            "case_sensitive": false
+          },
+          "do": "dismiss",
+          "target": {
+            "primary": {
+              "by": "role_name",
+              "role": "button",
+              "name": "Acknowledge",
+              "offset": 1,
+              "exact": false
+            },
+            "fallbacks": []
+          },
+          "max_attempts": 2,
+          "wait_ms": 1000,
+          "note": "Known maintenance interstitial. Expected noise that appears on any page after a release; acknowledge it and continue.\n"
+        }
+      ],
+      "timeout_ms": 10000,
+      "retries": 1
+    },
+    {
+      "id": "s2_extract_savings_balance",
+      "intent": "Extract the current balance for the Regular Savings account as the member's savings balance.",
+      "action": "extract",
+      "target": {
+        "primary": {
+          "by": "text_near",
+          "anchor": "Regular Savings",
+          "direction": "right",
+          "offset": 2,
+          "exact": false
+        },
+        "fallbacks": [],
+        "scope": {
+          "frame_path": [
+            "content"
+          ]
+        },
+        "captured": {
+          "role": "cell",
+          "name": "",
+          "tag": "td",
+          "bbox": {
+            "x": 272.75,
+            "y": 181.5,
+            "w": 112.09375,
+            "h": 19.0
+          },
+          "recorded_html_snippet": "<td align=\"right\" data-cua-ref=\"22\"><font size=\"1\">[REDACTED]</font></td>"
+        }
+      },
+      "extract_as": "savings_balance",
+      "extract_kind": "text",
+      "on_error": [
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "Your session has expired",
+            "case_sensitive": false
+          },
+          "do": "reauth",
+          "max_attempts": 1,
+          "wait_ms": 1000,
+          "note": "Idle timeout. Re-establish the application session and retry the step once. If re-authentication fails, escalate rather than looping.\n"
+        },
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "Server Error in",
+            "case_sensitive": false
+          },
+          "do": "fail",
+          "max_attempts": 2,
+          "wait_ms": 1000,
+          "note": "Unhandled application error. Not a business answer and not recoverable by retrying: stop and surface a debuggable failure.\n"
+        },
+        {
+          "when": {
+            "kind": "text_present",
+            "text": "Scheduled maintenance",
+            "case_sensitive": false
+          },
+          "do": "dismiss",
+          "target": {
+            "primary": {
+              "by": "role_name",
+              "role": "button",
+              "name": "Acknowledge",
+              "offset": 1,
+              "exact": false
+            },
+            "fallbacks": []
+          },
+          "max_attempts": 2,
+          "wait_ms": 1000,
+          "note": "Known maintenance interstitial. Expected noise that appears on any page after a release; acknowledge it and continue.\n"
+        }
+      ],
+      "timeout_ms": 10000,
+      "retries": 1
+    }
+  ],
+  "checkpoint": {
+    "kind": "text_present",
+    "text": "Member Relationship Summary",
+    "case_sensitive": false
+  },
+  "outcomes": [
+    {
+      "name": "member_not_found",
+      "description": "No such member exists for the provided member number.",
+      "detect": {
+        "kind": "text_present",
+        "text": "No member record found",
+        "case_sensitive": false
+      }
+    },
+    {
+      "name": "permission_denied",
+      "description": "User does not have permission to view this member's details.",
+      "detect": {
+        "kind": "text_present",
+        "text": "Access restricted",
+        "case_sensitive": false
+      }
+    }
+  ],
+  "provenance": {
+    "discovered_by": "llm",
+    "model": "gpt-4.1",
+    "goal": "look up member [REDACTED] and read their current savings balance",
+    "run_id": "discovery_20260914T164432_eb67f9",
+    "recorded_at": "2026-09-14T16:44:43.976482Z",
+    "evidence_ref": "discovery_20260914T164432_eb67f9"
+  },
+  "stats": {
+    "replays": 3,
+    "successes": 1,
+    "business_outcomes": 2,
+    "failures": 0,
+    "last_ok": "2026-09-14T16:47:14.929958Z",
+    "fallback_resolutions": 0
+  }
+}

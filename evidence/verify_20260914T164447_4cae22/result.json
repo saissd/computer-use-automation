@@ -1,0 +1,95 @@
+{
+  "status": "success",
+  "capability": "lookup_member_savings_balance@1.0.0",
+  "run_id": "verify_20260914T164447_4cae22",
+  "outputs": {
+    "savings_balance": "$8412.55"
+  },
+  "outcome": null,
+  "outcome_detail": null,
+  "intervention_id": null,
+  "reason": null,
+  "error": null,
+  "steps": [
+    {
+      "step_id": "s0_open",
+      "intent": "Open the application at its entry point",
+      "action": "navigate",
+      "status": "ok",
+      "started_at": "2026-09-14T16:44:47.395346Z",
+      "duration_ms": 811,
+      "locator_tier": null,
+      "locator_used": null,
+      "value_redacted": null,
+      "extracted": null,
+      "recoveries_applied": [],
+      "attempts": 1,
+      "error": null,
+      "screenshot": null,
+      "note": null
+    },
+    {
+      "step_id": "s1_type_member_number",
+      "intent": "Type member number {{member_number}} into the Member Number field.",
+      "action": "type",
+      "status": "ok",
+      "started_at": "2026-09-14T16:44:48.207413Z",
+      "duration_ms": 922,
+      "locator_tier": 0,
+      "locator_used": "role='textbox' name='Member Number'",
+      "value_redacted": "[REDACTED:member_number:len=5]",
+      "extracted": null,
+      "recoveries_applied": [],
+      "attempts": 1,
+      "error": null,
+      "screenshot": null,
+      "note": null
+    },
+    {
+      "step_id": "s2_click_search",
+      "intent": "Click the Search button to look up member number {{member_number}}.",
+      "action": "click",
+      "status": "ok",
+      "started_at": "2026-09-14T16:44:49.137243Z",
+      "duration_ms": 1000,
+      "locator_tier": 0,
+      "locator_used": "role='button' name='Search'",
+      "value_redacted": null,
+      "extracted": null,
+      "recoveries_applied": [],
+      "attempts": 1,
+      "error": null,
+      "screenshot": null,
+      "note": null
+    },
+    {
+      "step_id": "s2_extract_savings_balance",
+      "intent": "Extract the current balance for the Regular Savings account as the member's savings balance.",
+      "action": "extract",
+      "status": "ok",
+      "started_at": "2026-09-14T16:44:50.132877Z",
+      "duration_ms": 952,
+      "locator_tier": 0,
+      "locator_used": "near='Regular Savings' dir=right",
+      "value_redacted": null,
+      "extracted": {
+        "savings_balance": "$8412.55"
+      },
+      "recoveries_applied": [],
+      "attempts": 1,
+      "error": null,
+      "screenshot": null,
+      "note": null
+    }
+  ],
+  "evidence": {
+    "run_id": "verify_20260914T164447_4cae22",
+    "directory": "C:\\Users\\user\\computer-use-automation\\evidence\\verify_20260914T164447_4cae22",
+    "log_file": "run.jsonl",
+    "screenshots": [],
+    "dom_snapshot": null,
+    "trace": null
+  },
+  "started_at": "2026-09-14T16:44:51.190996Z",
+  "duration_ms": 3796
+}

@@ -69,16 +69,40 @@ the same file shows the two control transfers.
 
 ## The discovery run
 
-`cu discover` writes its evidence here too, under `discovery_*`, alongside the
-`verify_*` replay that proves the freshly recorded artifact actually works.
+Real runs against the live app: `gpt-4.1`, via
+`cu discover --provider openai --goal "look up member 12345 and read their current savings balance"`.
 
-It needs a model API key:
+| directory | what happened |
+|---|---|
+| `discovery_20260914T162654_3538c9` | **First live run — escalated.** The model typed the member number and searched, then called `escalate`: it could see the balance, but the observation numbered only controls, so there was nothing to `extract` from. Stuck detection working as designed, over a real defect ([REPORT §7](../REPORT.md#what-the-first-live-run-found)). Its log was re-redacted afterwards, once the run had also shown that unclassified values reached disk. |
+| `discovery_20260914T164432_eb67f9` | **Live run after the fixes — success** in 4 turns: type → click → extract → done. Produced [`capabilities/discovered/lookup_member_savings_balance@1.0.0.json`](../capabilities/discovered/). |
+| `verify_20260914T164447_4cae22` | The verification replay `cu discover` runs before saving: `success`. |
 
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-cu discover --goal "look up member 12345 and read their current savings balance"
-```
+One intermediate successful run is not here: review found its artifact still
+carried the member number inside model-written intents, so that was fixed and
+discovery run again. The artifact and the evidence above come from the same run.
 
-The discovery log records each turn: the observation the model received, the
-tool it called, its stated intent, which control it acted on, and the
-descriptor that was captured from that control. Grep for `model_decision`.
+Grep `model_decision` in a discovery log for each turn: the tool, the stated
+intent, and the redacted arguments.
+
+### Replaying what the model discovered
+
+No model in the loop.
+
+| directory | artifact | input | result |
+|---|---|---|---|
+| `replay_20260914T164511_b8423d` | 1.0.0 | 23456 — not the recorded member | `success`, `savings_balance` |
+| `replay_20260914T164519_236f02` | 1.0.0 | 99999 | `failed` at `s2_click_search`; observed "No member record found" |
+| `replay_20260914T164542_b3967d` | 1.0.0 | 55555 | `failed` at `s2_click_search`; observed "Access restricted" |
+| `replay_20260914T164709_804a41` | 1.0.1 | 23456 | `success` |
+| `replay_20260914T164717_6c6140` | 1.0.1 | 99999 | `business_outcome: member_not_found` |
+| `replay_20260914T164722_08ae14` | 1.0.1 | 55555 | `business_outcome: permission_denied` |
+
+**Read the 1.0.0 failures before the 1.0.1 outcomes.** Generalisation asked the
+model to declare the business outcomes, and it declared plausible ones
+("Member not found", "Access denied") for pages it had never seen — a
+happy-path run cannot observe them. Replay did the safe thing: no detector
+matched, so it did not guess, and it stopped with the real page text in
+`observed`. `1.0.1` is the reviewer's correction: those observed texts copied
+in, and a third invented outcome dropped because nobody has seen it fire. That
+is the draft → review loop the `status` field exists for.

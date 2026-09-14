@@ -42,11 +42,20 @@ class Catalog:
         several hundred `"anchor": null` lines that would otherwise bury the
         parts a human reviewer actually needs to read. Reviewability is a
         requirement here, not a nicety.
+
+        This is also a persistence boundary, so it is where a `pii` or `secret`
+        input loses its `example`. The in-memory capability keeps it — the
+        verification replay right after discovery needs a real value — but the
+        file never gets one.
         """
         path = self.path_for(capability)
+        persisted = capability.model_copy(deep=True)
+        for param in persisted.inputs:
+            if param.sensitivity in ("pii", "secret"):
+                param.example = None
         path.write_text(
             json.dumps(
-                capability.model_dump(mode="json", by_alias=True, exclude_none=True),
+                persisted.model_dump(mode="json", by_alias=True, exclude_none=True),
                 indent=2,
                 default=str,
             ),
