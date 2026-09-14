@@ -100,11 +100,11 @@ async def test_human_takes_over_live_session_and_hands_back(
     assert resolved.human_actions, "what the human did must be recorded"
     action = resolved.human_actions[0]
     assert action.operator == "casey.operator"
-    # Note the URL is *unchanged* across the handoff — the operator signed in
-    # and landed back on the same entry point. That is precisely why the
-    # evidence diffs the accessibility tree instead of trusting the address
-    # bar: the controls that appeared are what actually proves they got in.
-    assert action.observed_url_before == action.observed_url_after
+    # The address bar is not evidence. Where it pointed at escalation depends
+    # on whether the expiry page had redirected to sign-on yet (both happen),
+    # and a failed sign-on can redirect too. So the evidence diffs the
+    # accessibility tree: the controls that appeared show the session is usable.
+    assert not action.observed_url_after.endswith("/login")
     assert "textbox:Member Number" in action.elements_added
     assert action.text_delta_chars != 0
 

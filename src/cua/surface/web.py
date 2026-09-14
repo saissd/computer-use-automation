@@ -63,20 +63,37 @@ class WebSurface:
             cur = cur.parent_frame
         return list(reversed(path))
 
+    async def _settle(self, frame: Frame, timeout_ms: int = 5_000) -> None:
+        try:
+            await frame.wait_for_load_state("domcontentloaded", timeout=timeout_ms)
+        except PWError:
+            pass
+
     async def observe(self, screenshot: bool = False) -> Observation:
         elements: list[ObservedElement] = []
         texts: list[str] = []
         frames: list[FrameInfo] = []
         ref_base = 0
 
+        # A click that submits a form inside a frameset leaves that frame
+        # mid-navigation. Snapshotting now would yield a page with the content
+        # frame missing, and the model would reason over it as if it were
+        # real. Replay does not need this — its waits are declared per step.
+        for frame in self.page.frames:
+            await self._settle(frame)
+
         for frame in self.page.frames:
             path = self._frame_path(frame)
             try:
                 snap = await frame.evaluate(SNAPSHOT_JS)
             except PWError:
-                # A frame can navigate out from under us mid-snapshot. Skipping
-                # it is correct: the next observation will pick it up.
-                continue
+                # The frame navigated out from under us mid-snapshot. Give the
+                # new document one chance to land before skipping it.
+                await self._settle(frame)
+                try:
+                    snap = await frame.evaluate(SNAPSHOT_JS)
+                except PWError:
+                    continue
 
             frames.append(FrameInfo(name=frame.name or "", url=frame.url, path=path))
             if snap.get("text"):

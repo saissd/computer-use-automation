@@ -32,6 +32,9 @@ HOW YOU SEE THE APPLICATION
 Each turn you receive the current state as:
   * a numbered list of interactable controls, each with an accessibility role \
 and name, e.g.  [12] textbox "Member Number"
+  * a numbered list of readable values — table cells showing data, with the \
+text of their row for context, e.g.  [31] cell value='Active' row='Checking | Active'. \
+These can only be used with `extract`.
   * the visible text of the page.
 This is the same semantic view a screen reader exposes. You will not be given \
 HTML, CSS selectors, or coordinates, and you do not need them.
@@ -50,9 +53,10 @@ RULES
 1. One action per turn. After each action you will see the new state.
 2. Prefer controls with meaningful names. If two controls look equally \
 plausible, pick the one a human operator would obviously use.
-3. Use `extract` for every value the goal asks you to report back. Give each \
-one a clear snake_case output name. A value you do not extract is not \
-returned to the caller.
+3. Use `extract` for every value the goal asks you to report back, addressing \
+the numbered readable value that holds it. Give each one a clear snake_case \
+output name. A value you do not extract is not returned to the caller, even if \
+you can see it in the visible text.
 4. If a page shows an error, a warning, or an unexpected notice, read it \
 before acting. Dismiss a harmless interstitial; do not click past a real error.
 5. Never take an action that moves money, deletes a record, or is otherwise \
@@ -148,7 +152,8 @@ TOOLS = [
     _tool(
         "extract",
         "Read a value off the screen and return it as a named output of the "
-        "capability. Use this for every value the goal asks for.",
+        "capability. Use this for every value the goal asks for. `ref` is "
+        "normally a number from READABLE VALUES.",
         {
             "ref": _REF,
             "output_name": {

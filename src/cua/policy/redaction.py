@@ -42,13 +42,25 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("account", re.compile(r"\b\d{9,}\b")),
 ]
 
+# Discovery runs before anything is classified: no input is declared `pii`
+# yet, so the capture layer has nothing to act on and a five-digit member
+# number sails past the patterns above. In strict mode every amount and every
+# run of four or more digits is scrubbed. Blunt, and deliberately so — a
+# discovery log that over-redacts a date costs nothing. (A port like :8099 is
+# left alone so URLs stay readable.)
+STRICT_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    ("amount", re.compile(r"\$\s?\d[\d,]*(?:\.\d+)?")),
+    ("number", re.compile(r"(?<![:\w.])\d{4,}\b")),
+]
+
 
 class Redactor:
     """Scrubs strings before they are logged or persisted."""
 
-    def __init__(self, sensitive_values: set[str] | None = None):
+    def __init__(self, sensitive_values: set[str] | None = None, *, strict: bool = False):
         # Concrete values we were told are sensitive (the capture layer).
         self._values = {v for v in (sensitive_values or set()) if v and len(str(v)) >= 3}
+        self.strict = strict
 
     def add_value(self, value: str | None) -> None:
         if value and len(str(value)) >= 3:
@@ -62,7 +74,7 @@ class Redactor:
         for val in self._values:
             if val in out:
                 out = out.replace(val, REDACTED)
-        for label, pat in PATTERNS:
+        for label, pat in PATTERNS + (STRICT_PATTERNS if self.strict else []):
             out = pat.sub(f"[REDACTED:{label}]", out)
         return out
 

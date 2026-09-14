@@ -103,8 +103,33 @@ def build_extraction_descriptor(
 
     Read targets are usually static cells with no accessible name, so the
     adjacent-label signal carries more weight here than it does for controls.
+
+    When the surface found a unique, digit-free label further left in the row
+    (`rowAnchor`), that becomes the primary: the immediate neighbour of a value
+    is frequently more data ("Active", an account number), and anchoring on
+    data bakes this run's record into the artifact.
     """
     desc = build_descriptor(element, signals)
+
+    anchor = (signals.get("rowAnchor") or "").strip()
+    if anchor:
+        near = LocatorSignal(
+            by="text_near",
+            anchor=anchor,
+            direction="right",
+            offset=int(signals.get("rowAnchorOffset") or 1),
+        )
+        others = [
+            s for s in desc.signals()
+            if s.by != "text_near" and not (s.by == "css" and s.selector == signals.get("tag"))
+        ]
+        inner_id = (signals.get("innerId") or "").strip()
+        if inner_id and not signals.get("id"):
+            others.append(LocatorSignal(by="css", selector=f"#{inner_id}"))
+        return ElementDescriptor(
+            primary=near, fallbacks=others, scope=desc.scope, captured=desc.captured
+        )
+
     near = next((s for s in desc.signals() if s.by == "text_near"), None)
     if near is not None and desc.primary.by != "text_near":
         others = [s for s in desc.signals() if s is not near]

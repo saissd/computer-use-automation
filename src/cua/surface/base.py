@@ -43,6 +43,11 @@ class ObservedElement:
 
     def render(self) -> str:
         """Compact one-line form for the model's context window."""
+        if self.role == "cell":
+            line = f"[{self.ref}] cell value='{self.value or ''}'"
+            if self.attrs.get("row"):
+                line += f" row='{self.attrs['row']}'"
+            return line
         bits = [f"[{self.ref}]", self.role]
         if self.name:
             bits.append(f'"{self.name}"')
@@ -91,15 +96,20 @@ class Observation:
                 "FRAMES: " + ", ".join(f"{f.name or '(unnamed)'}" for f in self.frames)
             )
         lines.append("")
-        lines.append("INTERACTABLE ELEMENTS:")
-        shown = self.elements[:max_elements]
-        if not shown:
-            lines.append("  (none)")
-        for el in shown:
-            lines.append("  " + el.render())
-        if len(self.elements) > max_elements:
-            lines.append(f"  ... {len(self.elements) - max_elements} more omitted")
-        lines.append("")
+        controls = [e for e in self.elements if e.role != "cell"]
+        values = [e for e in self.elements if e.role == "cell"]
+        for heading, group in (
+            ("INTERACTABLE ELEMENTS:", controls),
+            ("READABLE VALUES (extract only):", values),
+        ):
+            lines.append(heading)
+            if not group:
+                lines.append("  (none)")
+            for el in group[:max_elements]:
+                lines.append("  " + el.render())
+            if len(group) > max_elements:
+                lines.append(f"  ... {len(group) - max_elements} more omitted")
+            lines.append("")
         lines.append("VISIBLE TEXT:")
         lines.append(self.text.strip()[:4000])
         return "\n".join(lines)

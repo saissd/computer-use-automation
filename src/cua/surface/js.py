@@ -86,6 +86,10 @@ SNAPSHOT_JS = r"""
     return r.width > 0 && r.height > 0;
   }
 
+  // Refs are per-observation. Clear the last observation's so a stale ref can
+  // never resolve to an element that is no longer numbered.
+  document.querySelectorAll('[data-cua-ref]').forEach(e => e.removeAttribute('data-cua-ref'));
+
   const SEL = 'a[href], button, input, select, textarea, [role], [onclick]';
   const out = [];
   let i = 0;
@@ -118,6 +122,36 @@ SNAPSHOT_JS = r"""
       }
     });
     i++;
+  });
+
+  // Read-only values: innermost table cells that hold text and no control.
+  // Legacy detail screens put every value worth reading in a bare <td>, so
+  // without this `extract` has nothing to address. They share the ref
+  // sequence but carry role 'cell', which keeps them out of the control list.
+  const rowText = (tr) => [...tr.children]
+    .map(c => norm(c.innerText)).filter(Boolean).join(' | ');
+  let cells = 0;
+  document.querySelectorAll('td, th').forEach(cell => {
+    if (cells >= 150) return;
+    if (cell.querySelector('td, th, a[href], button, input, select, textarea')) return;
+    const text = norm(cell.innerText);
+    if (!text || !visible(cell)) return;
+
+    const r = cell.getBoundingClientRect();
+    const tr = cell.closest('tr');
+    cell.setAttribute('data-cua-ref', String(i));
+    out.push({
+      ref: i,
+      role: 'cell',
+      name: '',
+      tag: cell.tagName.toLowerCase(),
+      value: text.slice(0, 120),
+      enabled: true,
+      bbox: { x: r.x, y: r.y, w: r.width, h: r.height },
+      attrs: { id: cell.id || '', name: '', type: '', row: tr ? rowText(tr).slice(0, 160) : '' }
+    });
+    i++;
+    cells++;
   });
 
   return {
@@ -209,19 +243,33 @@ DESCRIBE_JS = r"""
   // The label in the cell to the left, or the cell above — the two layouts
   // that legacy table-based forms actually use.
   let leftLabel = '', aboveLabel = '';
+  let rowAnchor = '', rowAnchorOffset = 0;
   const cell = el.closest ? el.closest('td, th') : null;
-  if (cell) {
-    const row = cell.closest('tr');
-    if (row) {
-      const kids = [...row.children];
-      const idx = kids.indexOf(cell);
-      if (idx > 0) leftLabel = norm(kids[idx - 1].innerText);
-      const prevRow = row.previousElementSibling;
-      if (prevRow && prevRow.children[idx]) {
-        aboveLabel = norm(prevRow.children[idx].innerText);
-      }
+  const row = cell ? cell.closest('tr') : null;
+  if (row) {
+    const kids = [...row.children];
+    const idx = kids.indexOf(cell);
+    if (idx > 0) leftLabel = norm(kids[idx - 1].innerText);
+    const prevRow = row.previousElementSibling;
+    if (prevRow && prevRow.children[idx]) {
+      aboveLabel = norm(prevRow.children[idx].innerText);
+    }
+
+    // For reading a value: the nearest cell to the left that is label-like
+    // (no digits — data has digits) and unique on the page (so a text_near
+    // anchored on it cannot land in another row). The immediate neighbour is
+    // often data itself, e.g. an account status of "Active" on every row.
+    const innermostContaining = (t) => [...document.querySelectorAll('td, th')]
+      .filter(c => norm(c.innerText).includes(t) &&
+        ![...c.querySelectorAll('td, th')].some(x => norm(x.innerText).includes(t)))
+      .length;
+    for (let j = idx - 1; j >= 0; j--) {
+      const t = norm(kids[j].innerText);
+      if (!t || /\d/.test(t)) continue;
+      if (innermostContaining(t) === 1) { rowAnchor = t; rowAnchorOffset = idx - j; break; }
     }
   }
+  const withId = el.querySelector ? el.querySelector('[id]') : null;
 
   let labelFor = '';
   if (el.id) {
@@ -248,6 +296,9 @@ DESCRIBE_JS = r"""
     labelFor: labelFor,
     leftLabel: leftLabel,
     aboveLabel: aboveLabel,
+    rowAnchor: rowAnchor,
+    rowAnchorOffset: rowAnchorOffset,
+    innerId: withId ? withId.id : '',
     text: norm(el.innerText),
     value: el.type === 'password' ? '' : norm(el.value),
     siblingsInCell: siblingsInCell,

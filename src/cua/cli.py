@@ -243,11 +243,15 @@ async def _discover(goal, entry, app_id, client, model, user, password, headful,
         console.print(f"risk         {capability.risk.klass}")
         console.print(f"checkpoint   {capability.checkpoint.describe()}")
 
+        # The literals the run typed. Needed once, in memory, to verify; never
+        # written into an artifact when the input is classified pii or secret.
+        examples = {p.name: p.example for p in capability.inputs if p.example}
+
         if verify:
             console.rule("[cyan]verification replay[/cyan]")
             # The artifact is only trustworthy if it replays. Verify before
             # saving, using the example values captured during discovery.
-            inputs = {p.name: p.example for p in capability.inputs if p.example}
+            inputs = dict(examples)
             vev = EvidenceWriter(new_run_id("verify"), ROOT / "evidence")
             engine = ReplayEngine(
                 session.surface, policy, session.lease, vev,
@@ -264,12 +268,21 @@ async def _discover(goal, entry, app_id, client, model, user, password, headful,
                 capability.stats.replays = 1
                 capability.stats.successes = 1
 
+        # An artifact is a persisted, reviewed, shared file: the recording
+        # member's id does not belong in it, not as an example and not inside
+        # the goal sentence the model was given.
+        literals = Redactor(set(examples.values()), strict=True)
+        for param in capability.inputs:
+            if param.sensitivity in ("pii", "secret"):
+                param.example = None
+        capability.provenance.goal = literals.text(capability.provenance.goal)
+
         path = Catalog(out).save(capability)
         console.print(f"\n[green]saved[/green] {path}")
         console.print(f"[dim]evidence: {ev.dir}[/dim]")
         console.print(
             f"\nreplay it with:\n  cu replay {capability.id} "
-            + " ".join(f"--input {p.name}={p.example}" for p in capability.inputs)
+            + " ".join(f"--input {p.name}={examples.get(p.name, '...')}" for p in capability.inputs)
         )
     finally:
         registry.unregister(session.session_id)

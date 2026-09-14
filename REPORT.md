@@ -369,10 +369,13 @@ consent**, particularly for anything irreversible.
 On resume the run continues on the same session from the step that stopped
 (`completed_manually` skips it instead). Across the handoff the system diffs
 the accessibility tree and records what actually changed — independent of what
-the operator says they did. In `evidence/replay_10_human_handoff` the URL is
-*identical* before and after, while `elements_added` shows
-`["button:Search", "textbox:Member Number", …]`. The address bar would have
-told you nothing; the tree diff proves the operator got back in. That diff is
+the operator says they did. In `evidence/replay_10_human_handoff`
+`elements_added` shows `["button:Search", "textbox:Member Number", …]`. The
+URL is not evidence: at the moment of escalation it is `/` or `/login`
+depending on whether the expiry page has redirected yet, and a failed sign-on
+redirects too. An earlier version of the handoff test asserted the URL was
+unchanged and passed only because its snapshot raced that redirect; it now
+asserts on the controls, which are the same in both cases. That diff is
 also the natural seed for a future version that proposes the missing steps back
 into the artifact.
 

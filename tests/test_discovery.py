@@ -40,6 +40,17 @@ def _find_ref(observation_text: str, role: str, name: str) -> int:
     raise AssertionError(f"no {role} named {name!r} in observation:\n{observation_text}")
 
 
+CELL_LINE = re.compile(r"\[(\d+)\] cell value='([^']*)' row='([^']*)'")
+
+
+def _find_cell(observation_text: str, row_contains: str, value_prefix: str) -> int:
+    """Pick a readable value by the row it sits in, as the model would."""
+    for ref, value, row in CELL_LINE.findall(observation_text):
+        if row_contains in row and value.startswith(value_prefix):
+            return int(ref)
+    raise AssertionError(f"no cell in a {row_contains!r} row:\n{observation_text}")
+
+
 class ScriptedModel:
     """Minimal stand-in for `anthropic.Anthropic().messages`.
 
@@ -85,9 +96,9 @@ PLAN = [
     (
         "extract",
         lambda text: {
-            "ref": _find_ref(text, "button", "Open Sub-Account"),
-            "output_name": "placeholder",
-            "intent": "placeholder — replaced below",
+            "ref": _find_cell(text, "Regular Savings", "$"),
+            "output_name": "savings_balance",
+            "intent": "Read the Regular Savings balance",
         },
     ),
     (
@@ -255,6 +266,17 @@ async def test_policy_blocks_reach_the_model_as_feedback(agent, session):
     assert "discovery_escalated" in events
 
 
+async def test_discovery_log_holds_no_run_data(agent):
+    """Before generalisation nothing is classified, so the log must assume the worst."""
+    a, ev = agent(PLAN)
+    result = await a.run("look up member 12345", BASE_URL + "/", "meridian-core-membersvc")
+    assert result.status == "success", result.reason
+
+    log = ev.log_path.read_text(encoding="utf-8")
+    assert "12345" not in log, "typed member number reached the discovery log"
+    assert "8412.55" not in log, "extracted balance reached the discovery log"
+
+
 async def test_generalization_parameterises_without_touching_steps(agent):
     """The model names and parameterises; it does not rewrite the flow."""
     a, _ = agent(PLAN[:2] + [PLAN[3]])
@@ -316,8 +338,15 @@ async def test_discovered_artifact_replays(agent, session, policy, tmp_path):
 
     This is the self-check `cu discover --verify` performs before saving.
     """
-    a, _ = agent(PLAN[:2] + [PLAN[3]])
+    a, _ = agent(PLAN)
     result = await a.run("look up member 12345", BASE_URL + "/", "meridian-core-membersvc")
+    assert result.status == "success", result.reason
+
+    # The value is anchored on the row's label, not its neighbour: the cell
+    # immediately left of a balance is the account status, which is data.
+    extract = next(s for s in result.capability.steps if s.action == "extract")
+    assert extract.target.primary.by == "text_near"
+    assert (extract.target.primary.anchor, extract.target.primary.offset) == ("Regular Savings", 2)
 
     spec = {
         "id": "discovered_lookup",
@@ -354,9 +383,10 @@ async def test_discovered_artifact_replays(agent, session, policy, tmp_path):
 
     # The recorded flow, replayed with a *different* member than it was
     # recorded with — which is the whole point of parameterisation.
-    replayed = await engine.run(capability, {"member_id": "34567"})
+    replayed = await engine.run(capability, {"member_id": "23456"})
 
     assert replayed.status == "success", replayed.summary()
+    assert replayed.outputs["savings_balance"].startswith("$")
     assert all((s.locator_tier or 0) == 0 for s in replayed.steps if s.locator_tier is not None)
 
     # And the declared business outcome works on the artifact discovery produced.

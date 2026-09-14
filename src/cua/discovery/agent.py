@@ -81,6 +81,11 @@ class DiscoveryAgent:
         self.policy = policy
         self.lease = lease
         self.evidence = evidence
+        # Nothing is classified yet during discovery — sensitivity is assigned
+        # by generalisation, afterwards — so every number and amount is treated
+        # as sensitive on the way to disk. Set here, not by the caller, so no
+        # caller can forget it.
+        self.evidence.redactor.strict = True
         self.client = client
         self.model = model
         self.queue = queue or QUEUE
@@ -198,6 +203,8 @@ class DiscoveryAgent:
 
             call = calls[0]
             name, args = call.name, call.input
+            for literal in (args.get("text"), args.get("option")):
+                self.evidence.redactor.add_value(literal)
             self.evidence.log(
                 "model_decision",
                 turn=turns,
@@ -298,7 +305,12 @@ class DiscoveryAgent:
             ), False
 
         label = element.name or element.tag
-        action = {"click": "click", "type": "type", "select": "select", "extract": "extract"}[name]
+        if element.role == "cell" and name != "extract":
+            return None, (
+                f"[{ref}] is a readable value, not a control. Use extract to read it, "
+                "or choose a numbered control to act on."
+            ), False
+        action ={"click": "click", "type": "type", "select": "select", "extract": "extract"}[name]
 
         decision = self.policy.check(action, label=label)
         if decision.verdict == "deny":
@@ -344,7 +356,8 @@ class DiscoveryAgent:
         if not act.ok:
             return None, f"The action failed: {act.detail}", False
 
-        step_id = f"s{len(typed) + len(outputs) + 1}_{action}_{_slug(label)}"[:48]
+        slug_source = args.get("output_name") if action == "extract" else label
+        step_id = f"s{len(typed) + len(outputs) + 1}_{action}_{_slug(slug_source)}"[:48]
         step = Step(
             id=step_id,
             intent=args["intent"],
@@ -359,6 +372,7 @@ class DiscoveryAgent:
         )
 
         if action == "extract":
+            self.evidence.redactor.add_value(act.extracted)
             outputs[args["output_name"]] = act.extracted or ""
             return step, f"Extracted {args['output_name']} = {act.extracted!r}", True
 
