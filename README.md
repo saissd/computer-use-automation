@@ -23,6 +23,10 @@ pip install -e ".[dev]"
 playwright install chromium
 ```
 
+On Windows, clone into a short path (e.g. `C:\code\`). One file in the
+`anthropic` SDK has a very long name, and a deep clone location pushes it past
+the 260-character path limit, which makes `pip install` fail with an `OSError`.
+
 Only `cu discover` needs a model API key. Everything else — replay, the error
 suite, the human-handoff demo, the whole test suite — runs offline.
 
