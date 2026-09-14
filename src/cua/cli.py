@@ -151,6 +151,7 @@ def discover(
 
 def _llm_client(provider: str, model: Optional[str]):
     """Pick the discovery model backend. Replay never reaches this."""
+    _load_dotenv(ROOT / ".env")
     has_anthropic = bool(
         os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")
     )
@@ -173,6 +174,18 @@ def _llm_client(provider: str, model: Optional[str]):
         "Everything else in this project runs without a key: see `cu replay`."
     )
     raise typer.Exit(2)
+
+
+def _load_dotenv(path: Path) -> None:
+    """Read KEY=VALUE lines from the gitignored .env. The real environment wins."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
 
 
 async def _discover(goal, entry, app_id, client, model, user, password, headful, verify, out):

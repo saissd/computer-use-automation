@@ -32,6 +32,7 @@ export ANTHROPIC_API_KEY=sk-ant-...   # default model: claude-opus-5
 export OPENAI_API_KEY=sk-...          # default model: gpt-4.1
 ```
 
+Or copy `.env.example` to `.env` (gitignored) and put the key there.
 `cu discover` picks whichever key is set; force one with `--provider openai`
 and override the model with `--model`. Both providers run the identical loop:
 OpenAI is adapted at the client boundary
